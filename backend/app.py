@@ -2,9 +2,9 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-@app.route('/articles', methods=['GET'])
+@app.route('/', methods=['GET'])
 def get_articles():
-    return {"members":["member1", "member2", "member3"]}
+    return {jsonify({"hello":"world"})}
 
 
 if __name__ == "__main__":
