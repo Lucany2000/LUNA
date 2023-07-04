@@ -1,10 +1,10 @@
-from flask import Flask, jsonify
+from flask import Flask
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
+@app.route('/articles', methods=['GET'])
 def get_articles():
-    return {jsonify({"hello":"world"})}
+    return {"members":["Member1", "member2", "member3"]}
 
 
 if __name__ == "__main__":
