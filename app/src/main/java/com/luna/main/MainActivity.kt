@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import android.database.MergeCursor
 import android.provider.Settings
+import android.widget.ScrollView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 
@@ -87,11 +88,42 @@ class MainActivity : AppCompatActivity() {
 
     private fun main() {
         val audioFiles = getAllAudioFiles(this)
-        val textToShow = audioFiles.joinToString("\n")
+
+        val customComparator = Comparator<Audio> { audio1, audio2 ->
+            val title1 = audio1.title ?: ""
+            val title2 = audio2.title ?: ""
+
+            // Ignore case and handle 'A' and 'The' cases
+            val title1WithoutPrefix = removePrefix(title1)
+            val title2WithoutPrefix = removePrefix(title2)
+
+            // Compare the titles without 'A' or 'The'
+            title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
+        }
+
+        val sortedAudioFiles = audioFiles.sortedWith(customComparator)
+
+        val textToShow = sortedAudioFiles.joinToString("\n") { audio ->
+            "${audio.title}, ${audio.artist}, ${audio.album}" }
         displayText(textToShow)
     }
 
+    private fun removePrefix(title: String): String {
+        val lowerCaseTitle = title.lowercase()
+        return when {
+            lowerCaseTitle.startsWith("the ") -> title.substring(4)
+            lowerCaseTitle.startsWith("a ") -> title.substring(2)
+            else -> title
+        }
+    }
+
     private fun displayText(text: String) {
+
+        val scrollView = ScrollView(this)
+        scrollView.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        )
 
         val rootLayout = LinearLayout(this)
         rootLayout.layoutParams = LinearLayout.LayoutParams(
@@ -112,10 +144,13 @@ class MainActivity : AppCompatActivity() {
         textView.gravity = Gravity.CENTER
         textView.setTextColor(Color.BLACK)
 
-        textView.setTextSize(24f)
+//        textView.setTextSize(24f)
 
         rootLayout.addView(textView)
-        setContentView(rootLayout)
+
+        scrollView.addView(rootLayout)
+
+        setContentView(scrollView)
     }
 
     fun errorMsg(text: String) {
@@ -181,9 +216,10 @@ class MainActivity : AppCompatActivity() {
                         + " AND ${MediaStore.Audio.Media.IS_NOTIFICATION} = 0"
                         + " AND ${MediaStore.Audio.Media.IS_ALARM} = 0"
                         + " AND ${MediaStore.Audio.Media.IS_MUSIC} != 0"
+                //+ " AND ${MediaStore.Audio.Media.TITLE} LIKE 'T%'"
                 )
 
-        val sortOrder = "${MediaStore.Audio.Media.DISPLAY_NAME} ASC"
+        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
         val cursor = context.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
