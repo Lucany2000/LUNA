@@ -1,11 +1,6 @@
 package com.luna.main
 
-
 import android.Manifest
-import android.content.ContentProvider
-import android.os.Environment
-import java.io.File
-import android.content.ContentResolver
 import android.content.ContentUris
 import android.net.Uri
 import android.content.Context
@@ -19,11 +14,13 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.os.Build
-import android.webkit.MimeTypeMap
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import android.database.MergeCursor
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.StateListDrawable
 import android.provider.Settings
+import android.text.TextUtils
+import android.view.View
 import android.widget.ScrollView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -87,37 +84,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun main() {
-        val audioFiles = getAllAudioFiles(this)
-
-        val customComparator = Comparator<Audio> { audio1, audio2 ->
-            val title1 = audio1.title ?: ""
-            val title2 = audio2.title ?: ""
-
-            // Ignore case and handle 'A' and 'The' cases
-            val title1WithoutPrefix = removePrefix(title1)
-            val title2WithoutPrefix = removePrefix(title2)
-
-            // Compare the titles without 'A' or 'The'
-            title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
-        }
-
-        val sortedAudioFiles = audioFiles.sortedWith(customComparator)
-
-        val textToShow = sortedAudioFiles.joinToString("\n") { audio ->
-            "${audio.title}, ${audio.artist}, ${audio.album}" }
-        displayText(textToShow)
-    }
-
-    private fun removePrefix(title: String): String {
-        val lowerCaseTitle = title.lowercase()
-        return when {
-            lowerCaseTitle.startsWith("the ") -> title.substring(4)
-            lowerCaseTitle.startsWith("a ") -> title.substring(2)
-            else -> title
-        }
-    }
-
-    private fun displayText(text: String) {
 
         val scrollView = ScrollView(this)
         scrollView.layoutParams = LinearLayout.LayoutParams(
@@ -132,26 +98,90 @@ class MainActivity : AppCompatActivity() {
         )
         rootLayout.orientation = LinearLayout.VERTICAL
         rootLayout.gravity = Gravity.CENTER
-        // Set a solid color background (you can use Color.parseColor for hex colors)
 
-        val textView = TextView(this)
-        textView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
+        val audioFiles = getAllAudioFiles(this)
+        val sortedAudioFiles = sort(audioFiles)
 
-        textView.text = text
-        textView.gravity = Gravity.CENTER
-        textView.setTextColor(Color.BLACK)
+        for (song in sortedAudioFiles) {
+            val button = createSongButton(song)
+            rootLayout.addView(button)
 
-//        textView.setTextSize(24f)
-
-        rootLayout.addView(textView)
+            val separator = createSeparator()
+            rootLayout.addView(separator)
+        }
 
         scrollView.addView(rootLayout)
 
         setContentView(scrollView)
     }
+
+    private fun createSongButton(audio: Audio): LinearLayout  {
+        val compoundTextView = LinearLayout(this)
+        compoundTextView.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        compoundTextView.orientation = LinearLayout.VERTICAL
+        compoundTextView.gravity = Gravity.CENTER
+
+        val titleTextView = createTextView(audio.title, true, compoundTextView)
+        val artistTextView = createTextView(audio.artist, false, compoundTextView)
+
+        val currentColor = ContextCompat.getColor(this, R.color.white)
+
+        val colorPressed = ContextCompat.getColor(this, R.color.light_gray)
+
+        compoundTextView.addView(titleTextView)
+        compoundTextView.addView(artistTextView)
+
+        val stateListDrawable = StateListDrawable()
+        stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(colorPressed))
+        stateListDrawable.addState(intArrayOf(android.R.attr.state_focused), ColorDrawable(colorPressed))
+        stateListDrawable.addState(intArrayOf(android.R.attr.state_activated), ColorDrawable(colorPressed))
+        stateListDrawable.addState(intArrayOf(), ColorDrawable(currentColor))
+
+        compoundTextView.background = stateListDrawable
+
+        compoundTextView.setOnClickListener {
+                Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show()
+        }
+
+        compoundTextView.setOnLongClickListener() {
+            Toast.makeText(this, "Long", Toast.LENGTH_SHORT).show()
+            true
+        }
+
+        return compoundTextView
+    }
+
+    private fun createSeparator(): View {
+        val separator = View(this)
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            resources.getDimensionPixelSize(R.dimen.separator_height)
+        )
+
+        separator.layoutParams = layoutParams
+        separator.setBackgroundColor(ContextCompat.getColor(this, R.color.black))
+
+        return separator
+    }
+
+    private fun createTextView(text: String, isTitle: Boolean, parent: LinearLayout): TextView {
+        val textView = TextView(this)
+        textView.text = text
+        textView.maxLines = 1
+        textView.ellipsize = TextUtils.TruncateAt.END
+
+        // Customize font size and rotation based on whether it's a title or artist
+        textView.textSize = if (isTitle) 20f else 18f
+
+        //TODO: text slider if (text.length > parent.width)
+//        textView.rotation = if (text.length > parent.width) 90f else 0f
+
+        return textView
+    }
+
 
     fun errorMsg(text: String) {
         val rootLayout = LinearLayout(this)
@@ -308,6 +338,32 @@ class MainActivity : AppCompatActivity() {
         return audio
     }
 
+    fun sort(audioFiles: List<Audio>): List<Audio> {
+        val customComparator = Comparator<Audio> { audio1, audio2 ->
+            val title1 = audio1.title ?: ""
+            val title2 = audio2.title ?: ""
+
+            // Ignore case and handle 'A' and 'The' cases
+            val title1WithoutPrefix = removePrefix(title1)
+            val title2WithoutPrefix = removePrefix(title2)
+
+            // Compare the titles without 'A' or 'The'
+            title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
+        }
+
+        val sortedAudioFiles = audioFiles.sortedWith(customComparator)
+        return sortedAudioFiles
+    }
+
+    private fun removePrefix(title: String): String {
+        val lowerCaseTitle = title.lowercase()
+        return when {
+            lowerCaseTitle.startsWith("the ") -> title.substring(4)
+            lowerCaseTitle.startsWith("a ") -> title.substring(2)
+            else -> title
+        }
+    }
+
     data class Audio(
         val id: Long,
         val name: String,
@@ -323,4 +379,5 @@ class MainActivity : AppCompatActivity() {
         val data: String,
         val uri: Uri
     )
+
 }
