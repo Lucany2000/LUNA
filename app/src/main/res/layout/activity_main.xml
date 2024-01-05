@@ -6,13 +6,72 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-<!--    <TextView-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Hello World!"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <ScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/floatingButton">
+
+            <LinearLayout
+                android:id="@+id/rootLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/floatingButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical"
+            android:background="@android:color/white">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@android:color/black"/>
+
+            <!-- Inner TextView 1 -->
+            <TextView
+                android:id="@+id/titleTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nothing is Currently Playing"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textSize="20sp"/>
+
+            <!-- Inner TextView 2 -->
+            <TextView
+                android:id="@+id/artistTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textSize="18sp"/>
+
+        </LinearLayout>
+
+
+<!--        <com.google.android.material.bottomnavigation.BottomNavigationView-->
+<!--            android:id="@+id/bottomNavigationView"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            android:background="?android:attr/windowBackground"/>-->
+<!--&lt;!&ndash;            app:menu="@menu/bottom_navigation_menu" />&ndash;&gt;-->
+
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

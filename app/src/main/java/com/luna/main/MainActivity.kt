@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main)
 
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -85,22 +85,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun main() {
 
-        val scrollView = ScrollView(this)
-        scrollView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-        )
-
-        val rootLayout = LinearLayout(this)
-        rootLayout.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-        )
-        rootLayout.orientation = LinearLayout.VERTICAL
-        rootLayout.gravity = Gravity.CENTER
+        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
 
         val audioFiles = getAllAudioFiles(this)
         val sortedAudioFiles = sort(audioFiles)
+
 
         for (song in sortedAudioFiles) {
             val button = createSongButton(song)
@@ -109,10 +98,6 @@ class MainActivity : AppCompatActivity() {
             val separator = createSeparator()
             rootLayout.addView(separator)
         }
-
-        scrollView.addView(rootLayout)
-
-        setContentView(scrollView)
     }
 
     private fun createSongButton(audio: Audio): LinearLayout  {
@@ -142,8 +127,12 @@ class MainActivity : AppCompatActivity() {
 
         compoundTextView.background = stateListDrawable
 
+        val floatingTitle = findViewById<TextView>(R.id.titleTextView)
+        val floatingArtist = findViewById<TextView>(R.id.artistTextView)
+
         compoundTextView.setOnClickListener {
-                Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show()
+            floatingTitle.text = audio.title
+            floatingArtist.text = audio.artist
         }
 
         compoundTextView.setOnLongClickListener() {
@@ -184,6 +173,8 @@ class MainActivity : AppCompatActivity() {
 
 
     fun errorMsg(text: String) {
+
+//        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
         val rootLayout = LinearLayout(this)
         rootLayout.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -379,5 +370,33 @@ class MainActivity : AppCompatActivity() {
         val data: String,
         val uri: Uri
     )
+
+    private fun createTopNavigationBar(): LinearLayout {
+        val navigationBar = LinearLayout(this)
+        navigationBar.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        navigationBar.orientation = LinearLayout.HORIZONTAL
+        navigationBar.gravity = Gravity.CENTER_VERTICAL
+
+        // Add buttons or other views to the navigation bar
+        val button1 = createNavigationBarButton("Button 1")
+        val button2 = createNavigationBarButton("Button 2")
+
+        navigationBar.addView(button1)
+        navigationBar.addView(button2)
+
+        return navigationBar
+    }
+
+    private fun createNavigationBarButton(text: String): TextView {
+        val button = TextView(this)
+        button.text = text
+        button.textSize = 18f
+        button.setPadding(16, 8, 16, 8)
+        // Set click listeners or other attributes as needed
+        return button
+    }
 
 }
