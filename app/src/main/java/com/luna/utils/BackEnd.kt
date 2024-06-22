@@ -34,7 +34,7 @@ object BackEnd {
 
         // Iterate through songs to get unique first characters
         for (song in songList) {
-            val sanitizedSong = BackEnd.removePrefix(song.getTitle())
+            val sanitizedSong = removePrefix(song.getTitle())
             val firstChar = sanitizedSong.trimStart().uppercase()[0]
             uniqueChars.add(firstChar)
         }

@@ -16,6 +16,7 @@ import android.util.Log
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.ScrollView
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSION_CODE = 0
     private var dismissPopupWindow: PopupWindow? = null
+    private val letterToFirstWordMap = mutableMapOf<String, LinearLayout>()
 //    private var player: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,8 +101,10 @@ class MainActivity : AppCompatActivity() {
 
         val charLine = findViewById<LinearLayout>(R.id.charLine)
 
-        val uniqueChars = BackEnd.createKnownAlphabet(BackEnd.sort(audioFiles))
+        val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles)
+        Log.d("UniqueChars", "${uniqueChars}")
 
+        val scrollView = findViewById<ScrollView>(R.id.scrollView)
 
         for (char in uniqueChars) {
             val button = TextView(this)
@@ -126,7 +130,7 @@ class MainActivity : AppCompatActivity() {
                         showBubbleText(view, button.text)
                         button.background = ColorDrawable(colorPressed)
 
-
+                        scrollToWordStartingWith(button.text.toString(), scrollView)
 
                         true // Consume the touch event
                     }
@@ -154,15 +158,53 @@ class MainActivity : AppCompatActivity() {
 
         Queue.defaultify(sortedAudioFiles)
 
-        for (song in sortedAudioFiles) {
-            val button = createSongButton(song)
-            rootLayout.addView(button)
 
+        //{(0, title). (1, id)}
+        val songButtons = sortedAudioFiles.map { song ->
+            val button = createSongButton(song)
             val separator = UI.createSeparator(this)
+
+            rootLayout.addView(button)
             rootLayout.addView(separator)
+
+            Pair(button, separator)
+        }
+//
+        songButtons.forEach { (button, separator) ->
+            val textview = button.getChildAt(0) as TextView
+            val text = textview.text.toString()
+            val firstChar = BackEnd.removePrefix(text).firstOrNull()?.uppercase()
+
+            if (firstChar != null && !letterToFirstWordMap.containsKey(firstChar)) {
+                letterToFirstWordMap[firstChar] = button
+            }
         }
 
+//        for ((key, linearLayout) in letterToFirstWordMap) {
+//            val log = linearLayout.getChildAt(0) as TextView
+//            Log.d("Song", "${log.text}")
+//        }
+
+//        for (song in sortedAudioFiles) {
+//            val button = createSongButton(song)
+//            rootLayout.addView(button)
+//
+//            val separator = UI.createSeparator(this)
+//            rootLayout.addView(separator)
+//        }
+
     }
+
+    private fun scrollToWordStartingWith(letter: String, scrollView: ScrollView) {
+        val textView: LinearLayout? = letterToFirstWordMap[letter]
+        textView?.let {
+            val scrollToY = it.top
+            scrollView.post {
+                scrollView.smoothScrollTo(0, scrollToY)
+            }
+        }
+    }
+
 
     // TODO: Figure out what this does
 //    private fun onCharacterButtonClick(char: Char, songList: List<Audio>) {
@@ -466,7 +508,6 @@ class MainActivity : AppCompatActivity() {
         bubbleLayout.setOnClickListener {
             popupWindow.dismiss()
         }
-
 
     }
 
