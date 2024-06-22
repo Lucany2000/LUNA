@@ -23,18 +23,18 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.provider.Settings
-import android.text.TextUtils
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.luna.data.Queue
+import com.luna.utils.BackEnd
+import com.luna.utils.UI
 
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSION_CODE = 0
     private var dismissPopupWindow: PopupWindow? = null
-    private var SongList: List<Song> = emptyList()
 //    private var player: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,11 +95,11 @@ class MainActivity : AppCompatActivity() {
         val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
 
         val audioFiles = getAllAudioFiles(this).distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
-        val sortedAudioFiles = sort(audioFiles)
+        val sortedAudioFiles = BackEnd.sort(audioFiles)
 
         val charLine = findViewById<LinearLayout>(R.id.charLine)
 
-        val uniqueChars = createKnownAlphabet(sort(audioFiles))
+        val uniqueChars = BackEnd.createKnownAlphabet(BackEnd.sort(audioFiles))
 
 
         for (char in uniqueChars) {
@@ -158,12 +158,13 @@ class MainActivity : AppCompatActivity() {
             val button = createSongButton(song)
             rootLayout.addView(button)
 
-            val separator = createSeparator()
+            val separator = UI.createSeparator(this)
             rootLayout.addView(separator)
         }
 
     }
 
+    // TODO: Figure out what this does
 //    private fun onCharacterButtonClick(char: Char, songList: List<Audio>) {
 //        val charLine = findViewById<LinearLayout>(R.id.charLine)
 //
@@ -192,8 +193,8 @@ class MainActivity : AppCompatActivity() {
         compoundTextView.orientation = LinearLayout.VERTICAL
         compoundTextView.gravity = Gravity.CENTER
 
-        val titleTextView = createTextView(audio.getTitle(), true, compoundTextView)
-        val artistTextView = createTextView(audio.getArtist(), false, compoundTextView)
+        val titleTextView = UI.createTextView(this, audio.getTitle(), true, compoundTextView)
+        val artistTextView = UI.createTextView(this, audio.getArtist(), false, compoundTextView)
 
         val currentColor = ContextCompat.getColor(this, R.color.white)
 
@@ -237,33 +238,33 @@ class MainActivity : AppCompatActivity() {
         return compoundTextView
     }
 
-    fun createSeparator(): View {
-        val separator = View(this)
-        val layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            resources.getDimensionPixelSize(R.dimen.separator_height)
-        )
-
-        separator.layoutParams = layoutParams
-        separator.setBackgroundColor(ContextCompat.getColor(this, R.color.black))
-
-        return separator
-    }
-
-    fun createTextView(text: String, isTitle: Boolean, parent: LinearLayout): TextView {
-        val textView = TextView(this)
-        textView.text = text
-        textView.maxLines = 1
-        textView.ellipsize = TextUtils.TruncateAt.END
-
-        // Customize font size and rotation based on whether it's a title or artist
-        textView.textSize = if (isTitle) 20f else 18f
-
-        //TODO: text slider if (text.length > parent.width)
-//        textView.rotation = if (text.length > parent.width) 90f else 0f
-
-        return textView
-    }
+//    fun createTextView(text: String, isTitle: Boolean, parent: LinearLayout): TextView {
+//        val textView = TextView(this)
+//        textView.text = text
+//        textView.maxLines = 1
+//        textView.ellipsize = TextUtils.TruncateAt.END
+//
+//        // Customize font size and rotation based on whether it's a title or artist
+//        textView.textSize = if (isTitle) 20f else 18f
+//
+//        //TODO: text slider if (text.length > parent.width)
+////        textView.rotation = if (text.length > parent.width) 90f else 0f
+//
+//        return textView
+//    }
+//
+//    fun createSeparator(): View {
+//        val separator = View(this)
+//        val layoutParams = LinearLayout.LayoutParams(
+//            LinearLayout.LayoutParams.MATCH_PARENT,
+//            resources.getDimensionPixelSize(R.dimen.separator_height)
+//        )
+//
+//        separator.layoutParams = layoutParams
+//        separator.setBackgroundColor(ContextCompat.getColor(this, R.color.black))
+//
+//        return separator
+//    }
 
     private fun getAllAudioFiles(context: Context): List<Song> {
 
@@ -381,32 +382,6 @@ class MainActivity : AppCompatActivity() {
         return audio
     }
 
-    fun sort(audioFiles: List<Song>): List<Song> {
-        val customComparator = Comparator<Song> { audio1, audio2 ->
-            val title1 = audio1.getTitle() ?: ""
-            val title2 = audio2.getTitle() ?: ""
-
-            // Ignore case and handle 'A' and 'The' cases
-            val title1WithoutPrefix = removePrefix(title1)
-            val title2WithoutPrefix = removePrefix(title2)
-
-            // Compare the titles without 'A' or 'The'
-            title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
-        }
-
-        val sortedAudioFiles = audioFiles.sortedWith(customComparator)
-        return sortedAudioFiles
-    }
-
-    fun removePrefix(title: String): String {
-        val lowerCaseTitle = title.lowercase()
-        return when {
-            lowerCaseTitle.startsWith("the ") -> title.substring(4)
-            lowerCaseTitle.startsWith("a ") -> title.substring(2)
-            else -> title
-        }
-    }
-
     fun errorMsg(text: String, context: Context) {
 
 //        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
@@ -445,19 +420,6 @@ class MainActivity : AppCompatActivity() {
         val uri: Uri = Uri.fromParts("package", packageName, null)
         intent.data = uri
         startActivity(intent)
-    }
-
-    fun createKnownAlphabet(songList: List<Song>): HashSet<Char> {
-        val uniqueChars = HashSet<Char>()
-
-        // Iterate through songs to get unique first characters
-        for (song in songList) {
-            val sanitizedSong = removePrefix(song.getTitle())
-            val firstChar = sanitizedSong.trimStart().uppercase()[0]
-            uniqueChars.add(firstChar)
-        }
-        return uniqueChars
-
     }
 
     fun showBubbleText(anchorView: View, bubbleText: CharSequence) {
