@@ -1,5 +1,6 @@
 package com.luna.utils
 
+import android.util.Log
 import com.luna.data.Song
 
 object BackEnd {
@@ -29,14 +30,14 @@ object BackEnd {
         }
     }
 
-    fun createKnownAlphabet(songList: List<Song>): HashSet<Char> {
-        val uniqueChars = HashSet<Char>()
-
+    fun createKnownAlphabet(songList: List<Song>): LinkedHashSet<Char> {
+        val uniqueChars = LinkedHashSet<Char>()
         // Iterate through songs to get unique first characters
         for (song in songList) {
             val sanitizedSong = removePrefix(song.getTitle())
             val firstChar = sanitizedSong.trimStart().uppercase()[0]
             uniqueChars.add(firstChar)
+            Log.d("UniqueChars", "$uniqueChars")
         }
         return uniqueChars
 
