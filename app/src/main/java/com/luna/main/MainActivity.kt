@@ -1,6 +1,5 @@
 package com.luna.main
 
-import com.luna.data.Song
 import android.widget.PopupWindow
 import android.Manifest
 import android.content.ContentUris
@@ -28,6 +27,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+
+import com.luna.data.Song
 import com.luna.data.Queue
 import com.luna.utils.BackEnd
 import com.luna.utils.UI
@@ -102,7 +103,6 @@ class MainActivity : AppCompatActivity() {
         val charLine = findViewById<LinearLayout>(R.id.charLine)
 
         val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles)
-        Log.d("UniqueChars", "${uniqueChars}")
 
         val scrollView = findViewById<ScrollView>(R.id.scrollView)
 
