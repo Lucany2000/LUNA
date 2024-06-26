@@ -12,14 +12,14 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-<!--    <ScrollView-->
-<!--        android:id="@+id/charLineScrollView"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent">-->
+    <ScrollView
+        android:id="@+id/charLineScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:id="@+id/charLineTest"
@@ -29,7 +29,7 @@
             android:layout_gravity="center"
             />
 
-<!--            </ScrollView>-->
+            </ScrollView>
 
     <com.luna.utils.ScrollBar
         android:layout_width="match_parent"

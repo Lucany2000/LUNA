@@ -109,8 +109,8 @@ class MainActivity : AppCompatActivity() {
         for (char in uniqueChars) {
             val button = TextView(this)
             button.text = char.toString()
-            button.width = 96
-            button.height = 96
+            button.width = 100
+            button.height = 100
 
             button.gravity = Gravity.CENTER
             button.textSize = 16f
