@@ -14,6 +14,7 @@ import com.luna.main.R
 class TestActivity : AppCompatActivity() {
 
     private val alphabet = ('A'..'Z').toMutableList()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.playground)

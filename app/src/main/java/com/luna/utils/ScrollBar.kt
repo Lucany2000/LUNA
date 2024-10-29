@@ -18,6 +18,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import android.util.Log
+import androidx.core.view.size
 import org.w3c.dom.Text
 
 class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
@@ -54,6 +55,10 @@ class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                     lastY = event.y
                     invalidate()
                 }
+
+//                scrollTrack?.post {
+//                    Log.d("scrollView", "${getVisibleScrollView(scrollTrack, parentLayout)}")
+//                }
 
                 parentLayout?.post {
                     val parentTop = parentLayout!!.top
@@ -95,16 +100,33 @@ class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                     parentLayout?.post {
                         val parentTop = parentLayout!!.top
                         val parentBottom = parentLayout!!.bottom
-                        val childrenArray = getChilden(top, bottom)
+                        val childrenArray = getChilden(it.top, it.bottom)
 
                         val topFiftyPer = hatchMark(parentTop, parentLayout!!.getChildAt(0).bottom)
                         val bottomFiftyPer = hatchMark(parentBottom, parentLayout!!.getChildAt(parentLayout!!.childCount - 1).top)
 
-                        if (top < parentTop + topFiftyPer) {
+//                        scrollTrack?.post {
+//
+//                            val visibleCeiling = getVisibleScrollView(scrollTrack, parentLayout)["top"]!!.toInt()
+//                            val visibleFloor = getVisibleScrollView(scrollTrack, parentLayout)["bottom"]!!.toInt()
+//
+//                            if (newTop < it.top && newTop > visibleCeiling + topFiftyPer && visibleCeiling > parentTop) {
+//                                scrollTrack!!.smoothScrollTo(parentLayout!!.left, visibleCeiling-100)
+//                            } else if(newBottom > it.bottom && newBottom < visibleFloor - bottomFiftyPer && visibleFloor < parentBottom) {
+//                                scrollTrack!!.smoothScrollTo(parentLayout!!.left, visibleFloor+100)
+//                            }
+//                            scrollTrack!!.smoothScrollTo(parentLayout!!.left, deltaY)
+//                            if (newTop < it.top) {
+//                                scrollTrack!!.smoothScrollTo(parentLayout!!.left, visibleCeiling-100)
+//                            }
+//
+//                        }
+
+                        if (it.top < parentTop + topFiftyPer) {
                             val firstChild = childrenArray[0]
                             firstChild.performClick()
                         }
-                        else if (bottom > parentBottom - bottomFiftyPer) {
+                        else if (it.bottom > parentBottom - bottomFiftyPer) {
                             val midChild = childrenArray[2]
                             midChild.performClick()
 
@@ -112,6 +134,11 @@ class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                             val lastChild = childrenArray[1]
                             lastChild.performClick()
                         }
+
+                        if (!isWithinParent(event.x, event.y)) {
+                            invalidate()
+                        }
+
                     }
                 }
             }
@@ -136,12 +163,12 @@ class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         return false
     }
 
-    private fun getChilden(top: Int, bottom: Int): MutableList<TextView> {
+    private fun getChilden(rectTop: Int, rectBottom: Int): MutableList<TextView> {
         val childBasket = childrenMap.filterValues {
             val fiftyPercent = hatchMark(it[0], it[1])
-            (top >= it[0] && top <= (it[1]-fiftyPercent)) ||
-                    (bottom >= (it[0]+fiftyPercent) && bottom <= it[1]) ||
-                    (it[0] > top && it[1] < bottom)
+            (rectTop >= it[0] && rectTop <= (it[1]-fiftyPercent)) ||
+                    (rectBottom >= (it[0]+fiftyPercent) && rectBottom <= it[1]) ||
+                    (it[0] > rectTop && it[1] < rectBottom)
         }
 
         //TODO: Run tests on likelyhood of a List > length 3
@@ -158,6 +185,25 @@ class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private fun hatchMark(top: Int, bottom: Int): Int {
         return (bottom - top).floorDiv(2)
     }
+
+    //TODO: Attempt looping scrollView
+    private fun getVisibleScrollView(scrollView: ScrollView?, container: LinearLayout?): MutableMap<String, Int> {
+//        var totalVisibleHeight = 0
+        val scrollBounds = Rect()
+        scrollView?.getHitRect(scrollBounds)
+        val visibleChildren = mutableListOf<TextView>()
+
+        for (i in 0 until container!!.childCount) {
+            val child = container.getChildAt(i)
+            if (child!!.getLocalVisibleRect(scrollBounds)) {
+//                totalVisibleHeight += child.height
+//                visibleChildren.add((child as TextView).text.toString())
+                visibleChildren.add(child as TextView)
+            }
+        }
+        return mutableMapOf("top" to visibleChildren[0].top, "bottom" to visibleChildren[visibleChildren.size-1].bottom)
+    }
+
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -225,3 +271,11 @@ class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 //    }
 //
 //}
+
+/*TODO: Create and test different variant of scrollBar
+  - Looping ScrollView
+  - Scroll button -> joystick
+    - Scroll button fixed to the center of the visible track
+    - Scroll button has limited vertical draggability
+    - Scroll speed dependent on how far the scroll button is being dragged
+*/
