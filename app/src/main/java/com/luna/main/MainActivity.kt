@@ -10,7 +10,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.MediaStore
-//import android.media.MediaPlayer
 import android.util.Log
 import android.view.Gravity
 import android.widget.LinearLayout
@@ -29,16 +28,17 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 
 import com.luna.data.Song
-import com.luna.data.Queue
+import com.luna.utils.Queue
 import com.luna.utils.BackEnd
 import com.luna.utils.UI
+import com.luna.utils.MusicPlayer
 
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSION_CODE = 0
     private var dismissPopupWindow: PopupWindow? = null
     private val letterToFirstWordMap = mutableMapOf<String, LinearLayout>()
-//    private var player: MediaPlayer? = null
+    private var player: MusicPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -264,8 +264,12 @@ class MainActivity : AppCompatActivity() {
 
             Log.d("Song", "${audio.getId()}")
 
-//            player = MediaPlayer.create(this, audio.uri)
-//            player!!.start()
+            if(player != null) {
+                player!!.release()
+            }
+            player = MusicPlayer(this, audio.getUri())
+            player!!.play()
+
 
             val x = it.x
             val y = it.y

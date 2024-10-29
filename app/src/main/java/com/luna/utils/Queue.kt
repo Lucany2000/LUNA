@@ -1,5 +1,6 @@
-package com.luna.data
+package com.luna.utils
 
+import com.luna.data.Song
 import kotlin.collections.Map
 
 // TODO: Might to revist in later issues
