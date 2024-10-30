@@ -265,6 +265,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("Song", "${audio.getId()}")
 
             if(player != null) {
+                player!!.stop()
                 player!!.release()
             }
             player = MusicPlayer(this, audio.getUri())

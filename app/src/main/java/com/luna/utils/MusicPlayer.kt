@@ -27,6 +27,10 @@ class MusicPlayer(context: Context, uri: Uri) {
         play()
     }
 
+    fun stop(){
+        player.stop()
+    }
+
     fun release(){
         if (getCurrentPosition() >= getDuration()){
             player.release()

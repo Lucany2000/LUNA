@@ -103,42 +103,45 @@
 
         </ScrollView>
 
-        <LinearLayout
-            android:id="@+id/floatingButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+    <include layout="@layout/floating_button"
+        android:id="@+id/floatingButton"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@android:color/black"/>
+<!--        <LinearLayout-->
+<!--            android:id="@+id/floatingButton"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            android:orientation="vertical"-->
+<!--            android:background="@android:color/white"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent">-->
 
-            <!-- Inner TextView 1 -->
-            <TextView
-                android:id="@+id/titleTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Nothing is Currently Playing"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textSize="20sp"/>
+<!--            <View-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="2dp"-->
+<!--                android:background="@android:color/black"/>-->
 
-            <!-- Inner TextView 2 -->
-            <TextView
-                android:id="@+id/artistTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textSize="18sp"/>
+<!--            &lt;!&ndash; Inner TextView 1 &ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:id="@+id/titleTextView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Nothing is Currently Playing"-->
+<!--                android:maxLines="1"-->
+<!--                android:ellipsize="end"-->
+<!--                android:textSize="20sp"/>-->
 
-        </LinearLayout>
+<!--            &lt;!&ndash; Inner TextView 2 &ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:id="@+id/artistTextView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text=""-->
+<!--                android:maxLines="1"-->
+<!--                android:ellipsize="end"-->
+<!--                android:textSize="18sp"/>-->
+
+<!--        </LinearLayout>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
