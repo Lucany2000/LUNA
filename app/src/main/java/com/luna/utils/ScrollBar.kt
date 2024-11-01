@@ -161,7 +161,7 @@ class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        parentLayout = (parent as? FrameLayout)?.findViewById(R.id.charLineTest)
+        parentLayout = (parent as? FrameLayout)?.findViewById(R.id.charLine)
         scrollTrack = (parent as? FrameLayout)?.findViewById(R.id.charLineScrollView)
         parentLayout?.let { parent ->
             for (i in 0 until parent.childCount) {

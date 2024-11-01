@@ -23,7 +23,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_gravity="start">
+            android:layout_gravity="start"
+            android:layout_marginLeft="5dp">
 
         <!-- Inner TextView 1 -->
         <TextView
@@ -48,6 +49,7 @@
         </LinearLayout>
 
 <!--    TODO: try and get everything on one level horizontally-->
+<!--    TODO: or fix the layouts such that the title and artist can expand further-->
 
     <LinearLayout
         android:id="@+id/iconContainer"
@@ -86,7 +88,8 @@
         android:src="@android:drawable/ic_media_play"
         app:tint="#FF000000"
         app:layout_constraintEnd_toEndOf="@id/pauseButton"
-        app:layout_constraintStart_toStartOf="@id/pauseButton"/>
+        app:layout_constraintStart_toStartOf="@id/pauseButton"
+        android:visibility="invisible"/>
 
     <ImageButton
         android:id="@+id/pauseButton"
@@ -110,7 +113,7 @@
             android:src="@android:drawable/ic_media_next"
             app:tint="#FF000000" />
 
-<!--TODO: Find and import music note resource-->
+<!--TODO: Find and import music note or 3-line resource-->
 
         <ImageButton
             android:id="@+id/ViewQButton"

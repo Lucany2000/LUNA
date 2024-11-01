@@ -22,7 +22,7 @@ class TestActivity : AppCompatActivity() {
 
     private fun main() {
 
-        val charLine = findViewById<LinearLayout>(R.id.charLineTest)
+        val charLine = findViewById<LinearLayout>(R.id.charLine)
 
         alphabet.addAll('1'..'9')
 

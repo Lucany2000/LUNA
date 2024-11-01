@@ -24,21 +24,22 @@ import android.graphics.drawable.StateListDrawable
 import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 
 import com.luna.data.Song
-import com.luna.utils.Queue
+import com.luna.global.SongOrder
 import com.luna.utils.BackEnd
 import com.luna.utils.UI
-import com.luna.utils.MusicPlayer
+import com.luna.global.MusicPlayer
 
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSION_CODE = 0
     private var dismissPopupWindow: PopupWindow? = null
     private val letterToFirstWordMap = mutableMapOf<String, LinearLayout>()
-    private var player: MusicPlayer? = null
+    private lateinit var generatedSongOrder: List<Song>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,8 +157,7 @@ class MainActivity : AppCompatActivity() {
             charLine.addView(button)
         }
 
-        Queue.defaultify(sortedAudioFiles)
-
+        generatedSongOrder = sortedAudioFiles
 
         //{(0, title). (1, id)}
         val songButtons = sortedAudioFiles.map { song ->
@@ -255,32 +255,58 @@ class MainActivity : AppCompatActivity() {
 
         val floatingTitle = findViewById<TextView>(R.id.titleTextView)
         val floatingArtist = findViewById<TextView>(R.id.artistTextView)
+        val floatingButtons = findViewById<LinearLayout>(R.id.iconContainer)
 
         compoundTextView.setOnClickListener {
             floatingTitle.text = audio.getTitle()
             floatingArtist.text = audio.getArtist()
 
-//            currentSongList = defaultSongList
+            floatingButtons.visibility = View.VISIBLE
 
-            Log.d("Song", "${audio.getId()}")
-
-            if(player != null) {
-                player!!.stop()
-                player!!.release()
+            if(MusicPlayer.checkIfPlayerEmpty() != null) {
+                MusicPlayer.stop()
+                MusicPlayer.release()
             }
-            player = MusicPlayer(this, audio.getUri())
-            player!!.play()
 
+            MusicPlayer.createPlayer(this, audio.getUri())
+            MusicPlayer.play()
 
-            val x = it.x
-            val y = it.y
-            Toast.makeText(this, "X: $x, y: $y", Toast.LENGTH_SHORT).show()
+            SongOrder.createDefaultOrder(generatedSongOrder)
+            SongOrder.setCurrentOrder(SongOrder.getDefault().toMutableMap())
+            SongOrder.setCurrentSong(audio)
+
+            Log.d("Song", "${SongOrder.getCurrent()}")
+
+//            val x = it.x
+//            val y = it.y
+//            Toast.makeText(this, "X: $x, y: $y", Toast.LENGTH_SHORT).show()
         }
 
-        compoundTextView.setOnLongClickListener() {
-            Toast.makeText(this, "Long", Toast.LENGTH_SHORT).show()
-            true
+//        compoundTextView.setOnLongClickListener() {
+//            Toast.makeText(this, "Long", Toast.LENGTH_SHORT).show()
+//            true
+//        }
+
+        val pauseButton: ImageView = findViewById(R.id.pauseButton)
+        val playButton: ImageView = findViewById(R.id.playButton)
+        val viewQButton: ImageView = findViewById(R.id.ViewQButton)
+
+        pauseButton.setOnClickListener {
+            MusicPlayer.pause()
+            pauseButton.visibility = View.INVISIBLE
+            playButton.visibility = View.VISIBLE
         }
+
+        playButton.setOnClickListener {
+            MusicPlayer.resume()
+            playButton.visibility = View.INVISIBLE
+            pauseButton.visibility = View.VISIBLE
+        }
+
+        viewQButton.setOnClickListener {
+
+        }
+
 
         return compoundTextView
     }
@@ -403,7 +429,7 @@ class MainActivity : AppCompatActivity() {
                 val id = it.getLong(idColumn)
                 val name = it.getString(nameColumn)
                 val title = it.getString(titleColumn)
-                val artist = it.getString(artistColumn)
+                val artist = it.getString(artistColumn) ?: "Unknown"
                 val artistId = it.getLong(artistIdColumn)
                 val album = it.getString(albumColumn)
                 val albumId = it.getLong(albumIdColumn)

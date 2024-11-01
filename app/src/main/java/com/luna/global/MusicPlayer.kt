@@ -1,15 +1,19 @@
-package com.luna.utils
+package com.luna.global
 
 import android.media.MediaPlayer
 import android.content.Context
 import android.net.Uri
 
-class MusicPlayer(context: Context, uri: Uri) {
+object MusicPlayer {
 
-    private var player: MediaPlayer
+    private lateinit var player: MediaPlayer
 
-    init {
+    fun createPlayer (context: Context, uri: Uri) {
         player = MediaPlayer.create(context, uri)
+    }
+
+    fun checkIfPlayerEmpty(): MediaPlayer? {
+        return if (MusicPlayer::player.isInitialized) player else null
     }
 
     fun play(){
@@ -18,7 +22,7 @@ class MusicPlayer(context: Context, uri: Uri) {
         }
     }
     fun pause(){
-        if (!isPlaying()) {
+        if (isPlaying()) {
             player.pause()
         }
     }
