@@ -1,6 +1,7 @@
 package com.luna.global
 
 import com.luna.data.Song
+import java.util.TreeMap
 import kotlin.collections.Map
 
 // TODO: Might to revist in later issues
@@ -9,7 +10,7 @@ object SongOrder {
 
     private var defaultOrder: Map<Int, Song> = mapOf()
 
-    private var currentOrder: MutableMap<Int, Song> = mutableMapOf()
+    private var currentOrder: TreeMap<Int, Song> = TreeMap()
 
     private var current: MutableList<Any> = mutableListOf()
 
@@ -21,7 +22,7 @@ object SongOrder {
     }
 
     fun setCurrentOrder(songList: MutableMap<Int, Song>) {
-        currentOrder = songList
+        currentOrder = TreeMap(songList)
     }
 
     fun setCurrentSong(song: Song) {
@@ -37,7 +38,7 @@ object SongOrder {
         return defaultOrder
     }
 
-    fun getCurrent(): MutableMap<Int, Song> {
+    fun getCurrentOrder(): TreeMap<Int, Song> {
         return currentOrder
     }
 

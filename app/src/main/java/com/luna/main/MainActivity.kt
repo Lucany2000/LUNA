@@ -274,8 +274,9 @@ class MainActivity : AppCompatActivity() {
             SongOrder.createDefaultOrder(generatedSongOrder)
             SongOrder.setCurrentOrder(SongOrder.getDefault().toMutableMap())
             SongOrder.setCurrentSong(audio)
-
-            Log.d("Song", "${SongOrder.getCurrent()}")
+//
+//            Log.d("Song", "${SongOrder.getDefault()}")
+//            Log.d("Song", "${SongOrder.getCurrentOrder()}")
 
 //            val x = it.x
 //            val y = it.y
@@ -304,7 +305,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewQButton.setOnClickListener {
-
+            val intent = Intent(this, SongOrderActivity::class.java)
+            startActivity(intent)
         }
 
 
