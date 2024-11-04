@@ -13,7 +13,6 @@ import com.luna.main.R
 
 class TestActivity : AppCompatActivity() {
 
-    private val alphabet = ('A'..'Z').toMutableList()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.playground)
@@ -21,8 +20,14 @@ class TestActivity : AppCompatActivity() {
     }
 
     private fun main() {
+//        generateCharLine()
 
+    }
+
+    fun generateCharLine() {
         val charLine = findViewById<LinearLayout>(R.id.charLine)
+
+        val alphabet = ('A'..'Z').toMutableList()
 
         alphabet.addAll('1'..'9')
 
