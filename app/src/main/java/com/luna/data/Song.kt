@@ -56,6 +56,11 @@ class Song
         return uri
     }
 
+    fun getImgSrc(): String {
+        //TODO: Update later
+        return "img src"
+    }
+
     //TODO: investigate on how ids and titles appear
 
     fun setId(newId: Long) {
