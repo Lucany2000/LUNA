@@ -10,7 +10,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -25,19 +24,18 @@ import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.*
 import org.bson.Document
-
+import android.util.Log
 
 import com.luna.data.Song
 import com.luna.global.SongOrder
 import com.luna.utils.BackEnd
 import com.luna.utils.UI
 import com.luna.global.MusicPlayer
-import com.luna.data.NoSqlDB
-import com.luna.data.DBTest
+import com.luna.utils.FileOfTheseus
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -352,12 +350,8 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     private fun getAllAudioFiles(context: Context): List<Song> {
-            //
-        val audio = mutableListOf<Song>()
 
-//        val db = NoSqlDB()
-//
-//        Log.d("Database", "${db}")
+        val audio = mutableListOf<Song>()
 
 
         val projection = arrayOf(
@@ -461,38 +455,20 @@ class MainActivity : AppCompatActivity() {
                     id
                 )
 
-                val song = Song(
-                        id, name, title,
-                        artist, artistId, album, albumId, albumartist,
-                        track, mime, isDownload, data, uri
-                    )
-
-                DBTest.test()
-
-//                if (!db.isBlacklisted(song)) {
-//                    println(true)
-//                } else
-//                    println(false)
-//
-//                db.closeClient()
-
-
-//                if (!db.isBlacklisted(song)) {
-//                    if (db.ifExist(song, "SongList")) {
-//                        db.updateCollection(song)
-//                        //TODO: decide whether audio should be skipped or updated
-//                    } else {
-//                        db.appendToCollection(song)
-//                    }
-//                }
-
-
                 audio.add(Song(
                         id, name, title,
                         artist, artistId, album, albumId, albumartist,
                         track, mime, isDownload, data, uri
                     )
                 )
+
+                FileOfTheseus.extractRawAudioAndHash(data) {hash ->
+                    Log.d("Song", "hash $hash ${Song(
+                        id, name, title,
+                        artist, artistId, album, albumId, albumartist,
+                        track, mime, isDownload, data, uri
+                    )}")
+                }
             }
         }
         return audio
@@ -583,28 +559,6 @@ class MainActivity : AppCompatActivity() {
             popupWindow.dismiss()
         }
 
-    }
-
-    fun grabFromData() = runBlocking {
-        val db = NoSqlDB()
-        val dbResults = db.getArtistAlbumSongs()
-
-        val deferredResults = dbResults.map { artistLayer ->
-            async {
-                // For each artist, process their albums concurrently
-                val albums = artistLayer.getList("albums", Document::class.java).orEmpty().flatMap { albumLayer ->
-                    // For each album, process the songs asynchronously
-                    val songs = albumLayer.getList("songs", Song::class.java).orEmpty()
-                    songs
-                }
-                albums // Return the combined list of songs for this artist
-            }
-        }
-
-        // Await the completion of all async tasks and collect the results
-        val allSongs = deferredResults.awaitAll().flatten()
-
-        allSongs
     }
 
 }
