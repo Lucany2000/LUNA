@@ -36,14 +36,15 @@ import com.luna.global.SongOrder
 import com.luna.utils.BackEnd
 import com.luna.utils.UI
 import com.luna.global.MusicPlayer
-import com.luna.data.NoSqlDB
-import com.luna.data.DBTest
+import com.luna.data.BackUpDB
+import com.luna.utils.QueryTable
 
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSION_CODE = 0
     private var dismissPopupWindow: PopupWindow? = null
     private val letterToFirstWordMap = mutableMapOf<String, LinearLayout>()
+    private val queryTable: QueryTable = QueryTable(this)
     private lateinit var generatedSongOrder: List<Song>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -461,32 +462,6 @@ class MainActivity : AppCompatActivity() {
                     id
                 )
 
-                val song = Song(
-                        id, name, title,
-                        artist, artistId, album, albumId, albumartist,
-                        track, mime, isDownload, data, uri
-                    )
-
-                DBTest.test()
-
-//                if (!db.isBlacklisted(song)) {
-//                    println(true)
-//                } else
-//                    println(false)
-//
-//                db.closeClient()
-
-
-//                if (!db.isBlacklisted(song)) {
-//                    if (db.ifExist(song, "SongList")) {
-//                        db.updateCollection(song)
-//                        //TODO: decide whether audio should be skipped or updated
-//                    } else {
-//                        db.appendToCollection(song)
-//                    }
-//                }
-
-
                 audio.add(Song(
                         id, name, title,
                         artist, artistId, album, albumId, albumartist,
@@ -586,7 +561,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun grabFromData() = runBlocking {
-        val db = NoSqlDB()
+        val db = BackUpDB()
         val dbResults = db.getArtistAlbumSongs()
 
         val deferredResults = dbResults.map { artistLayer ->

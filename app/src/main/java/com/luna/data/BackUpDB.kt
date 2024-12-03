@@ -9,7 +9,7 @@ import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.Accumulators
 
 
-class NoSqlDB {
+class BackUpDB {
 
     private val database: MongoDatabase
     private lateinit var collection: MongoCollection<Document>
