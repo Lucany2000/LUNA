@@ -6,20 +6,45 @@ import android.database.sqlite.SQLiteDatabase
 import com.luna.data.Song
 import kotlinx.serialization.json.Json
 
-open class QueryTable(context: Context): MainDatabase(context) {
 
-    open fun getSongs(db: SQLiteDatabase, table_name: String): List<Song> {
+interface QueryTableInterface {
+    fun getSongs(db: SQLiteDatabase, artist: String? = null, album: String? = null): List<Song>
 
-        val query = """
-        SELECT song
-        FROM $table_name """
+    fun getArtists(db: SQLiteDatabase): Set<String>
+
+    fun getAlbums(db: SQLiteDatabase): Set<Pair<String, String>>
+
+    fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<Any>>
+
+}
 
 
-        val cursor = db.rawQuery(query, null)
+
+internal class QueryTable(context: Context): MainDatabase(context), QueryTableInterface {
+
+    override fun getSongs(db: SQLiteDatabase, artist: String?, album: String?): List<Song> {
+
+        val baseQuery = StringBuilder("SELECT song FROM SongList")
+
+        val queryArgs = mutableListOf<String>()
+
+        when {
+            artist != null && album == null -> {
+                baseQuery.append(" WHERE artist = ?")
+                queryArgs.add(artist)
+            }
+            artist != null && album != null -> {
+                baseQuery.append(" WHERE COALESCE(albumartist, artist) = ? AND album = ?")
+                queryArgs.add(artist)
+                queryArgs.add(album)
+            }
+        }
+
+        val cursor = db.rawQuery(baseQuery.toString(), queryArgs.toTypedArray())
 
         val results = mutableListOf<Song>()
         if (cursor.moveToFirst()) {
-            val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("songObj"))
+            val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
             val songObj = Json.decodeFromString<Song>(serializedSong) // Deserialize back to Song
             results.add(songObj)
         }
@@ -28,51 +53,67 @@ open class QueryTable(context: Context): MainDatabase(context) {
         return results
     }
 
+    override fun getArtists(db: SQLiteDatabase): Set<String> {
+        val query = """
+        SELECT artist, albumartist
+        FROM SongList """
 
-    open fun searchAlgo(db: SQLiteDatabase, input: String): MutableMap<String, MutableSet<Map<String, String?>>> {
+        val cursor = db.rawQuery(query, null)
+
+        val results = mutableSetOf<String>()
+
+        while (cursor.moveToNext()) {
+            val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
+            val albumArtist = cursor.getString(cursor.getColumnIndexOrThrow("albumartist"))
+            results.add(artist)
+            results.add(albumArtist)
+        }
+
+        cursor.close()
+
+        return results
+    }
+
+    override fun getAlbums(db: SQLiteDatabase): Set<Pair<String, String>> {
+        val query = """
+        SELECT album, COALESCE(albumartist, artist) as albumartist
+        FROM SongList """
+
+        val cursor = db.rawQuery(query, null)
+
+        val results = mutableSetOf<Pair<String, String>>()
+
+        while (cursor.moveToNext()) {
+            val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
+            val albumArtist = cursor.getString(cursor.getColumnIndexOrThrow("albumartist"))
+            results.add(Pair(album, albumArtist))
+        }
+
+        cursor.close()
+
+        return results
+    }
+
+
+    override fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<Any>> {
 
         val query = """
         SELECT song FROM SongList 
-        WHERE title LIKE ? OR artist LIKE ? OR album LIKE ?
+        WHERE title LIKE ? OR COALESCE(albumartist, artist) LIKE ? OR album LIKE ?
     """
         val cursor = db.rawQuery(query, arrayOf("%$input%", "%$input%", "%$input%"))
 
-        val combinedMap = mutableMapOf<String, MutableSet<Map<String, String?>>>()
+        val combinedMap = mutableMapOf<String, MutableSet<Any>>()
         while (cursor.moveToNext()) {
-            val title = cursor.getString(cursor.getColumnIndexOrThrow("title"))
+            val song = cursor.getString(cursor.getColumnIndexOrThrow("song"))
             val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
             val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
-            val song = cursor.getString(cursor.getColumnIndexOrThrow("song"))
 
-            combinedMap.computeIfAbsent(title) { mutableSetOf() }.add(mapOf("song" to song))
-            combinedMap.computeIfAbsent(artist) { mutableSetOf() }.add(mapOf("artist" to artist))
-            combinedMap.computeIfAbsent(album) { mutableSetOf() }.add(mapOf("album" to album))
+            combinedMap.computeIfAbsent("song") { mutableSetOf() }.add(Json.decodeFromString<Song>(song))
+            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(artist)
+            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(album)
         }
         cursor.close()
         return combinedMap
-    }
-
-//    fun getArtist(db: SQLiteDatabase, table_name: String, view: View) {}
-
-
-    open fun getArtistAlbumSongs(db: SQLiteDatabase, table_name: String): MutableList<Map<String, Any>> {
-
-        val query = """
-        SELECT artist, album, GROUP_CONCAT(title) AS songs
-        FROM $table_name
-        GROUP BY artist, album
-    """
-        val cursor = db.rawQuery(query, null)
-
-        val aggregatedResults = mutableListOf<Map<String, Any>>()
-        while (cursor.moveToNext()) {
-            val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
-            val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
-            val songs = cursor.getString(cursor.getColumnIndexOrThrow("songs")).split(",")
-
-            aggregatedResults.add(mapOf("artist" to artist, "album" to album, "songs" to songs))
-        }
-        cursor.close()
-        return aggregatedResults
     }
 }

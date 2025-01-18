@@ -18,17 +18,17 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         createTable(db, "SongList")
         createTable(db, "Blacklist")
 
-        val SQL_CREATE_SONGLIST = """
-            CREATE TABLE IF NOT EXISTS SongList (
-                audio BLOB PRIMARY KEY,
-                title TEXT NOT NULL,
-                artist TEXT NOT NULL,
-                album TEXT NOT NULL,
-                albumartist TEXT NOT NULL,
-                song TEXT NOT NULL,
-                image BLOB
-            )
-        """.trimIndent()
+//        val SQL_CREATE_SONGLIST = """
+//            CREATE TABLE IF NOT EXISTS SongList (
+//                audio BLOB PRIMARY KEY,
+//                title TEXT NOT NULL,
+//                artist TEXT NOT NULL,
+//                album TEXT NOT NULL,
+//                albumartist TEXT NOT NULL,
+//                song TEXT NOT NULL,
+//                image BLOB
+//            )
+//        """.trimIndent()
 //
 //        val SQL_CREATE_BLACKLIST = """
 //            CREATE TABLE IF NOT EXISTS Blacklist (
@@ -42,7 +42,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
 //            )
 //        """.trimIndent()
 //
-        db.execSQL(SQL_CREATE_SONGLIST)
+//        db.execSQL(SQL_CREATE_SONGLIST)
 //        db.execSQL(SQL_CREATE_BLACKLIST)
     }
 
@@ -52,7 +52,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         }
     }
 
-    fun createTable(db: SQLiteDatabase, table_name: String, columns: Map<String, String>? = null ) {
+    internal open fun createTable(db: SQLiteDatabase, table_name: String, columns: Map<String, String>? = null ) {
 
         val SQL_CREATE_TABLE = if (columns == null) {
             """
@@ -79,18 +79,18 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         }
     }
 
-    fun ifExist(db: SQLiteDatabase, tableName: String, songId: Long): Boolean {
+    internal open fun ifExist(db: SQLiteDatabase, tableName: String, songId: Long): Boolean {
         val cursor = db.rawQuery("SELECT 1 FROM $tableName WHERE id = ?", arrayOf(songId.toString()))
         val exists = cursor.moveToFirst()
         cursor.close()
         return exists
     }
 
-    fun isBlacklisted(db: SQLiteDatabase, songId: Long): Boolean {
+    internal open fun isBlacklisted(db: SQLiteDatabase, songId: Long): Boolean {
         return ifExist(db, "blacklist", songId )
     }
 
-    fun blacklist(db: SQLiteDatabase, table_name: String, songId: Long) {
+    internal open fun blacklist(db: SQLiteDatabase, table_name: String, songId: Long) {
 
         val songCursor = db.rawQuery("SELECT * FROM $table_name WHERE id = ?", arrayOf(songId.toString()))
         if (songCursor.moveToFirst()) {
@@ -141,7 +141,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         songCursor.close()
     }
 
-    fun appendToTable(db: SQLiteDatabase, table_name: String, song: Song) {
+    internal open fun appendToTable(db: SQLiteDatabase, table_name: String, song: Song) {
 
         val values = ContentValues().apply {
             put("title", song.getTitle())
@@ -154,7 +154,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         db.insert(table_name, null, values)
     }
 
-    fun updateCollection(db: SQLiteDatabase, table_name: String, song: Song) {
+    internal open fun updateCollection(db: SQLiteDatabase, table_name: String, song: Song) {
 
         val values = ContentValues().apply {
             put("title", song.getTitle())
