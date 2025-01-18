@@ -468,6 +468,13 @@ class MainActivity : AppCompatActivity() {
                         track, mime, isDownload, data, uri
                     )
                 )
+
+                Log.d("Song", "${Song(
+                    id, name, title,
+                    artist, artistId, album, albumId, albumartist,
+                    track, mime, isDownload, data, uri
+                )}")
+
             }
         }
         return audio
