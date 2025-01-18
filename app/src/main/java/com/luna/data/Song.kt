@@ -1,22 +1,26 @@
 package com.luna.data
 
 import android.net.Uri
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
-class Song
+@Serializable
+data class Song
     (private var id: Long,
-    private val name: String,
-    private var title: String,
-    private val artist: String,
-    private val artistId: Long,
-    private val album: String,
-    private val albumId: Long,
-    private val albumartist: String,
-    private val track: Long,
-    private val mime: String,
-    private val isDownload: Long,
-    private val data: String,
-    private val uri: Uri) {
-        fun getId(): Long {
+     private val name: String,
+     private var title: String,
+     private val artist: String,
+     private val artistId: Long,
+     private val album: String,
+     private val albumId: Long,
+     private val albumartist: String,
+     private val track: Long,
+     private val mime: String,
+     private val isDownload: Long,
+     private val data: String,
+     private val uri: Uri) {
+    fun getId(): Long {
         return id
     }
     fun getName(): String {
@@ -70,6 +74,11 @@ class Song
     fun setTitle(name: String) {
 
     }
+
+    fun jsonify(): String {
+        return Json.encodeToString(this) // Convert this object to a JSON string
+    }
+
 }
 
 

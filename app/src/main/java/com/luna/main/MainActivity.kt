@@ -462,13 +462,12 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
 
-                FileOfTheseus.extractRawAudioAndHash(data) {hash ->
-                    Log.d("Song", "hash $hash ${Song(
-                        id, name, title,
-                        artist, artistId, album, albumId, albumartist,
-                        track, mime, isDownload, data, uri
-                    )}")
-                }
+                Log.d("Song", "${Song(
+                    id, name, title,
+                    artist, artistId, album, albumId, albumartist,
+                    track, mime, isDownload, data, uri
+                )}")
+
             }
         }
         return audio
