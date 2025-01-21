@@ -20,7 +20,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
 
 //        val SQL_CREATE_SONGLIST = """
 //            CREATE TABLE IF NOT EXISTS SongList (
-//                audio BLOB PRIMARY KEY,
+//                hash TEXT PRIMARY KEY,
 //                title TEXT NOT NULL,
 //                artist TEXT NOT NULL,
 //                album TEXT NOT NULL,
@@ -32,7 +32,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
 //
 //        val SQL_CREATE_BLACKLIST = """
 //            CREATE TABLE IF NOT EXISTS Blacklist (
-//                audio BLOB PRIMARY KEY,
+//                hash TEXT PRIMARY KEY,
 //                title TEXT NOT NULL,
 //                artist TEXT NOT NULL,
 //                album TEXT NOT NULL,
@@ -57,7 +57,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         val SQL_CREATE_TABLE = if (columns == null) {
             """
             CREATE TABLE IF NOT EXISTS $table_name (
-                audio BLOB PRIMARY KEY,
+                hash TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 artist TEXT NOT NULL,
                 album TEXT NOT NULL,
@@ -79,20 +79,20 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         }
     }
 
-    internal open fun ifExist(db: SQLiteDatabase, tableName: String, songId: Long): Boolean {
-        val cursor = db.rawQuery("SELECT 1 FROM $tableName WHERE id = ?", arrayOf(songId.toString()))
+    internal open fun ifExist(db: SQLiteDatabase, tableName: String, song: Song): Boolean {
+        val cursor = db.rawQuery("SELECT 1 FROM $tableName WHERE hash = ?", arrayOf(song.getHash().toString()))
         val exists = cursor.moveToFirst()
         cursor.close()
         return exists
     }
 
-    internal open fun isBlacklisted(db: SQLiteDatabase, songId: Long): Boolean {
-        return ifExist(db, "blacklist", songId )
+    internal open fun isBlacklisted(db: SQLiteDatabase, song: Song): Boolean {
+        return ifExist(db, "blacklist", song)
     }
 
-    internal open fun blacklist(db: SQLiteDatabase, table_name: String, songId: Long) {
+    internal open fun blacklist(db: SQLiteDatabase, table_name: String, song: Song) {
 
-        val songCursor = db.rawQuery("SELECT * FROM $table_name WHERE id = ?", arrayOf(songId.toString()))
+        val songCursor = db.rawQuery("SELECT * FROM $table_name WHERE hash = ?", arrayOf(song.getHash().toString()))
         if (songCursor.moveToFirst()) {
             val values = ContentValues()
             for (i in 0 until songCursor.columnCount) {
@@ -136,7 +136,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
                 }
             }
             db.insert("blacklist", null, values)
-            db.delete(table_name, "id = ?", arrayOf(songId.toString()))
+            db.delete(table_name, "hash = ?", arrayOf(song.getHash().toString()))
         }
         songCursor.close()
     }
@@ -164,11 +164,11 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
             put("song", song.jsonify())
             put("image", song.getImgSrc())
         }
-        db.update(table_name, values, "id = ?", arrayOf(song.getId().toString()))
+        db.update(table_name, values, "hash = ?", arrayOf(song.getHash().toString()))
 
         // Update blacklist if necessary
-        if (isBlacklisted(db, song.getId())) {
-            db.update("blacklist", values, "id = ?", arrayOf(song.getId().toString()))
+        if (isBlacklisted(db, song)) {
+            db.update("blacklist", values, "hash = ?", arrayOf(song.getHash().toString()))
         }
     }
 

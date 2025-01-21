@@ -7,7 +7,8 @@ import kotlinx.serialization.encodeToString
 
 @Serializable
 data class Song
-    (private var id: Long,
+    (private val hash: String?,
+    private var id: Long,
     private val name: String,
     private var title: String,
     private val artist: String,
@@ -64,6 +65,11 @@ data class Song
         //TODO: Update later
         return "img src"
     }
+
+    fun getHash(): String? {
+        return hash
+    }
+
 
     //TODO: investigate on how ids and titles appear
 

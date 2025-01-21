@@ -25,7 +25,6 @@ import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.*
 import org.bson.Document
@@ -36,15 +35,15 @@ import com.luna.global.SongOrder
 import com.luna.utils.BackEnd
 import com.luna.utils.UI
 import com.luna.global.MusicPlayer
-import com.luna.data.BackUpDB
-import com.luna.utils.QueryTable
+import com.luna.utils.FileOfTheseus
+import com.luna.data.MainDatabase
+
 
 class MainActivity : AppCompatActivity() {
 
     private val REQUEST_PERMISSION_CODE = 0
     private var dismissPopupWindow: PopupWindow? = null
     private val letterToFirstWordMap = mutableMapOf<String, LinearLayout>()
-    private val queryTable: QueryTable = QueryTable(this)
     private lateinit var generatedSongOrder: List<Song>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +75,7 @@ class MainActivity : AppCompatActivity() {
                     )
             }
         } else {
-            main()
+            initializeApp()
 
         }
     }
@@ -102,94 +101,99 @@ class MainActivity : AppCompatActivity() {
 
     private fun main() {
 
-        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
 
-        val audioFiles = getAllAudioFiles(this).distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
+    }
+
+    private fun initializeApp() {
+        getAllAudioFilesAsync(this) { audioFiles ->
+            val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
+
+//            val audioFiles2 = audioFiles.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
 
 //        val sortedAudioFiles = BackEnd.sort(grabFromData())
 
 //        Log.d("Database", "${grabFromData()}")
 
-        val sortedAudioFiles = BackEnd.sort(audioFiles)
+            val sortedAudioFiles = BackEnd.sort(audioFiles.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) })
 
-        val charLine = findViewById<LinearLayout>(R.id.charLine)
+            val charLine = findViewById<LinearLayout>(R.id.charLine)
 
-        val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles)
+            val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles)
 
-        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+            val scrollView = findViewById<ScrollView>(R.id.scrollView)
 
-        for (char in uniqueChars) {
-            val button = TextView(this)
-            button.text = char.toString()
-            button.width = 100
-            button.height = 100
+            for (char in uniqueChars) {
+                val button = TextView(this)
+                button.text = char.toString()
+                button.width = 100
+                button.height = 100
 
-            button.gravity = Gravity.CENTER
-            button.textSize = 16f
-
-
-            val currentColor = ContextCompat.getColor(this, R.color.light_gray)
-
-            val colorPressed = Color.BLUE
-
-            button.background = ColorDrawable(currentColor)
+                button.gravity = Gravity.CENTER
+                button.textSize = 16f
 
 
-            button.setOnTouchListener { view, motionEvent ->
-                when (motionEvent.action) {
-                    MotionEvent.ACTION_DOWN -> {
+                val currentColor = ContextCompat.getColor(this, R.color.light_gray)
 
-                        showBubbleText(view, button.text)
-                        button.background = ColorDrawable(colorPressed)
+                val colorPressed = Color.BLUE
 
-                        scrollToWordStartingWith(button.text.toString(), scrollView)
+                button.background = ColorDrawable(currentColor)
 
-                        true // Consume the touch event
+
+                button.setOnTouchListener { view, motionEvent ->
+                    when (motionEvent.action) {
+                        MotionEvent.ACTION_DOWN -> {
+
+                            showBubbleText(view, button.text)
+                            button.background = ColorDrawable(colorPressed)
+
+                            scrollToWordStartingWith(button.text.toString(), scrollView)
+
+                            true // Consume the touch event
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            dismissPopupWindow?.dismiss()
+
+                            button.background = ColorDrawable(currentColor)
+
+                            true // Consume the touch event
+                        }
+                        MotionEvent.ACTION_CANCEL -> {
+                            dismissPopupWindow?.dismiss()
+
+                            button.background = ColorDrawable(currentColor)
+
+                            true // Consume the touch event
+                        }
+                        else -> false
                     }
-                    MotionEvent.ACTION_UP -> {
-                        dismissPopupWindow?.dismiss()
+                }
 
-                        button.background = ColorDrawable(currentColor)
+                // Add the button to the LinearLayout
+                charLine.addView(button)
+            }
 
-                        true // Consume the touch event
-                    }
-                    MotionEvent.ACTION_CANCEL -> {
-                        dismissPopupWindow?.dismiss()
+            generatedSongOrder = sortedAudioFiles
 
-                        button.background = ColorDrawable(currentColor)
+            //{(0, title). (1, id)}
+            val songButtons = sortedAudioFiles.map { song ->
+                val button = createSongButton(song)
+                val separator = UI.createSeparator(this)
 
-                        true // Consume the touch event
-                    }
-                    else -> false
+                rootLayout.addView(button)
+                rootLayout.addView(separator)
+
+                Pair(button, separator)
+            }
+//
+            songButtons.forEach { (button, separator) ->
+                val textview = button.getChildAt(0) as TextView
+                val text = textview.text.toString()
+                val firstChar = BackEnd.removePrefix(text).firstOrNull()?.uppercase()
+
+                if (firstChar != null && !letterToFirstWordMap.containsKey(firstChar)) {
+                    letterToFirstWordMap[firstChar] = button
                 }
             }
-
-            // Add the button to the LinearLayout
-            charLine.addView(button)
-        }
-
-        generatedSongOrder = sortedAudioFiles
-
-        //{(0, title). (1, id)}
-        val songButtons = sortedAudioFiles.map { song ->
-            val button = createSongButton(song)
-            val separator = UI.createSeparator(this)
-
-            rootLayout.addView(button)
-            rootLayout.addView(separator)
-
-            Pair(button, separator)
-        }
-//
-        songButtons.forEach { (button, separator) ->
-            val textview = button.getChildAt(0) as TextView
-            val text = textview.text.toString()
-            val firstChar = BackEnd.removePrefix(text).firstOrNull()?.uppercase()
-
-            if (firstChar != null && !letterToFirstWordMap.containsKey(firstChar)) {
-                letterToFirstWordMap[firstChar] = button
-            }
-        }
 
 //        for ((key, linearLayout) in letterToFirstWordMap) {
 //            val log = linearLayout.getChildAt(0) as TextView
@@ -203,7 +207,149 @@ class MainActivity : AppCompatActivity() {
 //            val separator = UI.createSeparator(this)
 //            rootLayout.addView(separator)
 //        }
+        }
+    }
 
+    private fun getAllAudioFiles(context: Context): List<Song> {
+        //
+        val audio = mutableListOf<Song>()
+
+//        val db = MainDatabase(this)
+//
+//        Log.d("Database", "${db}")
+
+
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.DISPLAY_NAME,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ARTIST_ID,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.ALBUM_ARTIST,
+            MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.MIME_TYPE,
+            MediaStore.Audio.Media.IS_DOWNLOAD,
+            MediaStore.Audio.Media.DATA
+        )
+
+        val selection = (
+                "${MediaStore.Audio.Media.IS_RINGTONE} = 0"
+                        + " AND ${MediaStore.Audio.Media.IS_NOTIFICATION} = 0"
+                        + " AND ${MediaStore.Audio.Media.IS_ALARM} = 0"
+                        + " AND ${MediaStore.Audio.Media.IS_MUSIC} != 0"
+                //+ " AND ${MediaStore.Audio.Media.TITLE} LIKE 'T%'"
+                )
+
+        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
+
+        val cursor = context.contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            null,
+            sortOrder
+        )
+
+        // TODO: Investigate MediaStore.Donwloads causing crashes
+//        val cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            MergeCursor(
+//                arrayOf(
+//                    context.contentResolver.query(
+//                        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+//                        projection,
+//                        selection,
+//                        null,
+//                        sortOrder
+//                        //"${MediaStore.Audio.Media.DISPLAY_NAME} ASC"
+//                        //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
+//                    ),
+//                    context.contentResolver.query(
+//                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+//                        projection,
+//                        selection,
+//                        null,
+//                        sortOrder
+//                        //"${MediaStore.Audio.Media.DISPLAY_NAME} DESC"
+//                        //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
+//                    )
+//                )
+//            )
+//        } else {
+//            context.contentResolver.query(
+//                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+//                projection,
+//                null,
+//                null,
+//                sortOrder
+//                //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
+//            )
+//        }
+
+        cursor?.use {
+            val idColumn = it.getColumnIndex(MediaStore.Audio.Media._ID)
+            val nameColumn = it.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
+            val titleColumn = it.getColumnIndex(MediaStore.Audio.Media.TITLE)
+            val artistColumn = it.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+            val artistIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)
+            val albumColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+            val albumIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+            val albumartistColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ARTIST)
+            val trackColumn = it.getColumnIndex(MediaStore.Audio.Media.TRACK)
+            val mimeColumn = it.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
+            val isDownloadColumn = it.getColumnIndex(MediaStore.Audio.Media.IS_DOWNLOAD)
+            val dataColumn = it.getColumnIndex(MediaStore.Audio.Media.DATA)
+
+            while (it.moveToNext()) {
+                val id = it.getLong(idColumn)
+                val name = it.getString(nameColumn)
+                val title = it.getString(titleColumn)
+                val artist = it.getString(artistColumn) ?: "Unknown"
+                val artistId = it.getLong(artistIdColumn)
+                val album = it.getString(albumColumn)
+                val albumId = it.getLong(albumIdColumn)
+                val albumartist = it.getString(albumartistColumn) ?: "Unknown"
+                val track = it.getLong(trackColumn)
+                val mime = it.getString(mimeColumn)
+                val isDownload = it.getLong(isDownloadColumn)
+                val data = it.getString(dataColumn)
+
+                val uri = ContentUris.withAppendedId(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    id
+                )
+
+                val hash = FileOfTheseus.calculateFileHash(data)
+
+
+                audio.add(Song(
+                    hash, id, name, title,
+                    artist, artistId, album, albumId, albumartist,
+                    track, mime, isDownload, data, uri
+                )
+                )
+
+                Log.d("Song", "${Song(
+                    hash, id, name, title,
+                    artist, artistId, album, albumId, albumartist,
+                    track, mime, isDownload, data, uri
+                )}")
+
+
+
+            }
+        }
+        return audio
+    }
+
+    fun getAllAudioFilesAsync(context: Context, onComplete: (List<Song>) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val audioFiles = getAllAudioFiles(context)
+            withContext(Dispatchers.Main) {
+                onComplete(audioFiles)
+            }
+        }
     }
 
     private fun scrollToWordStartingWith(letter: String, scrollView: ScrollView) {
@@ -352,134 +498,6 @@ class MainActivity : AppCompatActivity() {
 //        return separator
 //    }
 
-    private fun getAllAudioFiles(context: Context): List<Song> {
-            //
-        val audio = mutableListOf<Song>()
-
-//        val db = NoSqlDB()
-//
-//        Log.d("Database", "${db}")
-
-
-        val projection = arrayOf(
-            MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.DISPLAY_NAME,
-            MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.ARTIST_ID,
-            MediaStore.Audio.Media.ALBUM,
-            MediaStore.Audio.Media.ALBUM_ID,
-            MediaStore.Audio.Media.ALBUM_ARTIST,
-            MediaStore.Audio.Media.TRACK,
-            MediaStore.Audio.Media.MIME_TYPE,
-            MediaStore.Audio.Media.IS_DOWNLOAD,
-            MediaStore.Audio.Media.DATA
-        )
-
-        val selection = (
-                "${MediaStore.Audio.Media.IS_RINGTONE} = 0"
-                        + " AND ${MediaStore.Audio.Media.IS_NOTIFICATION} = 0"
-                        + " AND ${MediaStore.Audio.Media.IS_ALARM} = 0"
-                        + " AND ${MediaStore.Audio.Media.IS_MUSIC} != 0"
-                //+ " AND ${MediaStore.Audio.Media.TITLE} LIKE 'T%'"
-                )
-
-        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
-
-        val cursor = context.contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            selection,
-            null,
-            sortOrder
-        )
-
-        // TODO: Investigate MediaStore.Donwloads causing crashes
-//        val cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            MergeCursor(
-//                arrayOf(
-//                    context.contentResolver.query(
-//                        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-//                        projection,
-//                        selection,
-//                        null,
-//                        sortOrder
-//                        //"${MediaStore.Audio.Media.DISPLAY_NAME} ASC"
-//                        //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
-//                    ),
-//                    context.contentResolver.query(
-//                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-//                        projection,
-//                        selection,
-//                        null,
-//                        sortOrder
-//                        //"${MediaStore.Audio.Media.DISPLAY_NAME} DESC"
-//                        //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
-//                    )
-//                )
-//            )
-//        } else {
-//            context.contentResolver.query(
-//                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-//                projection,
-//                null,
-//                null,
-//                sortOrder
-//                //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
-//            )
-//        }
-
-        cursor?.use {
-            val idColumn = it.getColumnIndex(MediaStore.Audio.Media._ID)
-            val nameColumn = it.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
-            val titleColumn = it.getColumnIndex(MediaStore.Audio.Media.TITLE)
-            val artistColumn = it.getColumnIndex(MediaStore.Audio.Media.ARTIST)
-            val artistIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)
-            val albumColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-            val albumIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
-            val albumartistColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ARTIST)
-            val trackColumn = it.getColumnIndex(MediaStore.Audio.Media.TRACK)
-            val mimeColumn = it.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
-            val isDownloadColumn = it.getColumnIndex(MediaStore.Audio.Media.IS_DOWNLOAD)
-            val dataColumn = it.getColumnIndex(MediaStore.Audio.Media.DATA)
-
-            while (it.moveToNext()) {
-                val id = it.getLong(idColumn)
-                val name = it.getString(nameColumn)
-                val title = it.getString(titleColumn)
-                val artist = it.getString(artistColumn) ?: "Unknown"
-                val artistId = it.getLong(artistIdColumn)
-                val album = it.getString(albumColumn)
-                val albumId = it.getLong(albumIdColumn)
-                val albumartist = it.getString(albumartistColumn) ?: "Unknown"
-                val track = it.getLong(trackColumn)
-                val mime = it.getString(mimeColumn)
-                val isDownload = it.getLong(isDownloadColumn)
-                val data = it.getString(dataColumn)
-
-                val uri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    id
-                )
-
-                audio.add(Song(
-                        id, name, title,
-                        artist, artistId, album, albumId, albumartist,
-                        track, mime, isDownload, data, uri
-                    )
-                )
-
-                Log.d("Song", "${Song(
-                    id, name, title,
-                    artist, artistId, album, albumId, albumartist,
-                    track, mime, isDownload, data, uri
-                )}")
-
-            }
-        }
-        return audio
-    }
-
     fun errorMsg(text: String, context: Context) {
 
 //        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
@@ -565,28 +583,6 @@ class MainActivity : AppCompatActivity() {
             popupWindow.dismiss()
         }
 
-    }
-
-    fun grabFromData() = runBlocking {
-        val db = BackUpDB()
-        val dbResults = db.getArtistAlbumSongs()
-
-        val deferredResults = dbResults.map { artistLayer ->
-            async {
-                // For each artist, process their albums concurrently
-                val albums = artistLayer.getList("albums", Document::class.java).orEmpty().flatMap { albumLayer ->
-                    // For each album, process the songs asynchronously
-                    val songs = albumLayer.getList("songs", Song::class.java).orEmpty()
-                    songs
-                }
-                albums // Return the combined list of songs for this artist
-            }
-        }
-
-        // Await the completion of all async tasks and collect the results
-        val allSongs = deferredResults.awaitAll().flatten()
-
-        allSongs
     }
 
 }
