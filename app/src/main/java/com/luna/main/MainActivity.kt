@@ -75,7 +75,8 @@ class MainActivity : AppCompatActivity() {
                     )
             }
         } else {
-            initializeApp()
+            val appInstance = application as StartUp
+            main()
 
         }
     }
@@ -100,11 +101,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun main() {
-
-
-    }
-
-    private fun initializeApp() {
         getAllAudioFilesAsync(this) { audioFiles ->
             val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
 
@@ -208,6 +204,7 @@ class MainActivity : AppCompatActivity() {
 //            rootLayout.addView(separator)
 //        }
         }
+
     }
 
     private fun getAllAudioFiles(context: Context): List<Song> {

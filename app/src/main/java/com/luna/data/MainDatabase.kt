@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.Cursor
 import android.util.Log
+import kotlinx.serialization.json.Json
 
 open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
@@ -50,6 +51,14 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE SongList ADD COLUMN newColumn TEXT DEFAULT 'default_value'")
         }
+    }
+
+    fun readOnlyMode(): SQLiteDatabase {
+        return readableDatabase
+    }
+
+    fun writeMode(): SQLiteDatabase {
+        return writableDatabase
     }
 
     internal open fun createTable(db: SQLiteDatabase, table_name: String, columns: Map<String, String>? = null ) {
@@ -154,7 +163,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         db.insert(table_name, null, values)
     }
 
-    internal open fun updateCollection(db: SQLiteDatabase, table_name: String, song: Song) {
+    internal open fun updateEntry(db: SQLiteDatabase, table_name: String, song: Song) {
 
         val values = ContentValues().apply {
             put("title", song.getTitle())
@@ -170,6 +179,16 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         if (isBlacklisted(db, song)) {
             db.update("blacklist", values, "hash = ?", arrayOf(song.getHash().toString()))
         }
+    }
+
+    internal open fun checkForUpdate(db: SQLiteDatabase, song: Song): Song {
+        val cursor = db.rawQuery(
+            "SELECT song FROM 'SongList' WHERE hash = ?",
+            arrayOf(song.getHash().toString())
+        )
+        val songObj = cursor.getString(0)
+        cursor.close()
+        return Json.decodeFromString(songObj)
     }
 
 }
