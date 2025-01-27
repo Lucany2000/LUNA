@@ -13,11 +13,12 @@ import kotlinx.coroutines.withContext
 import com.luna.data.Song
 import com.luna.utils.FileOfTheseus
 import com.luna.data.MainDatabase
+import com.luna.utils.QueryTable
 
 class StartUp: Application() {
 
     lateinit var audioFiles: List<Song>
-//    lateinit var db: MainDatabase
+//    lateinit var database: MainDatabase
     override fun onCreate() {
         super.onCreate()
 
@@ -31,9 +32,9 @@ class StartUp: Application() {
 
         val audio = mutableListOf<Song>()
 
-//        db = MainDatabase(this)
-//        val readOnlyDB = db.readOnlyMode()
-//
+//        database = MainDatabase(this)
+//        val readOnlyDB = database.readOnlyMode()
+
 //        Log.d("Database", "${db}")
 
 
@@ -147,19 +148,19 @@ class StartUp: Application() {
                 )
 
 
-                /*
-                if (!db.isBlacklisted(readOnlyDB, song)){
-                    val writeToDB = db.writeMode()
-                    if (db.ifExist(readOnlyDB, "SongList", song)) {
-                        val entry = db.checkForUpdate(readOnlyDB, song)
-                        if (song != entry) {
-                            db.updateEntry(writeToDB, "SongList", song)
-                        }
-                    } else {
-                        db.appendToTable(writeToDB,"SongList", song)
-                    }
-                }
-                 */
+
+//                if (!database.isBlacklisted(readOnlyDB, song)){
+//                    val writeToDB = database.writeMode()
+//                    if (database.ifExist(readOnlyDB, "SongList", song)) {
+//                        val entry = database.checkForUpdate(readOnlyDB, song)
+//                        if (song != entry) {
+//                            database.updateEntry(writeToDB, "SongList", song)
+//                        }
+//                    } else {
+//                        database.appendToTable(writeToDB,"SongList", song)
+//                    }
+//                }
+
 
                 audio.add(song)
 
@@ -173,7 +174,8 @@ class StartUp: Application() {
 
             }
         }
-        return audio
+
+        return audio.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
     }
 
 

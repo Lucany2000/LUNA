@@ -1,9 +1,14 @@
 package com.luna.utils
 
 import android.util.Log
+import android.widget.LinearLayout
+import android.widget.ScrollView
 import com.luna.data.Song
 
 object BackEnd {
+
+    //Sorting Algo.
+
     fun sort(audioFiles: List<Song>): List<Song> {
         val customComparator = Comparator<Song> { audio1, audio2 ->
             val title1 = audio1.getTitle() ?: ""
@@ -30,6 +35,9 @@ object BackEnd {
         }
     }
 
+
+    //Character Line
+
     fun createKnownAlphabet(songList: List<Song>): LinkedHashSet<Char> {
         val uniqueChars = LinkedHashSet<Char>()
         // Iterate through songs to get unique first characters
@@ -41,5 +49,15 @@ object BackEnd {
         }
         return uniqueChars
 
+    }
+
+    fun scrollToWordStartingWith(letter: String, letterToFirstInstance: MutableMap<String, LinearLayout> ,scrollView: ScrollView) {
+        val textView: LinearLayout? = letterToFirstInstance[letter]
+        textView?.let {
+            val scrollToY = it.top
+            scrollView.post {
+                scrollView.smoothScrollTo(0, scrollToY)
+            }
+        }
     }
 }
