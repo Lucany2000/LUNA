@@ -51,65 +51,67 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED ||
+//        if (ContextCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.READ_MEDIA_AUDIO
+//            ) != PackageManager.PERMISSION_GRANTED ||
+//
+//            ContextCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.READ_EXTERNAL_STORAGE
+//            ) != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            // Permission is not granted, request it
+//            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+//                    ActivityCompat.requestPermissions(
+//                        this,
+//                        arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
+//                        REQUEST_PERMISSION_CODE
+//                    )
+//            } else {
+//                    ActivityCompat.requestPermissions(
+//                        this,
+//                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+//                        REQUEST_PERMISSION_CODE
+//                    )
+//            }
+//        } else {
+//            main()
+//
+//        }
 
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permission is not granted, request it
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
-                        REQUEST_PERMISSION_CODE
-                    )
-            } else {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                        REQUEST_PERMISSION_CODE
-                    )
-            }
-        } else {
-            main()
-
-        }
+        main()
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == REQUEST_PERMISSION_CODE) {
-            // Check if permissions are granted
-            if (grantResults.isNotEmpty() &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED
-            ) {
-                main()
-            } else {
-               errorMsg("No Audio Found", this)
-            }
-        }
-    }
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<out String>,
+//        grantResults: IntArray
+//    ) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//
+//        if (requestCode == REQUEST_PERMISSION_CODE) {
+//            // Check if permissions are granted
+//            if (grantResults.isNotEmpty() &&
+//                grantResults[0] == PackageManager.PERMISSION_GRANTED
+//            ) {
+//                main()
+//            } else {
+//               errorMsg("No Audio Found", this)
+//            }
+//        }
+//    }
 
     private fun main() {
-        val appInstance = application as StartUp
 
-//        val query = QueryTable(this)
-//        val readOnlyDB = query.readOnlyMode()
+        val query = QueryTable(this)
+        val readOnlyDB = query.readOnlyMode()
 
+        val audioFiles = query.getSongs(readOnlyDB)
 
-//        val audioFiles = query.getSongs(readOnlyDB)
-
-        val audioFiles = appInstance.audioFiles
+//        val appInstance = application as StartUp
+//
+//        val audioFiles = appInstance.audioFiles
 
 
         val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)

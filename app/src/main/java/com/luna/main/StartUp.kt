@@ -18,22 +18,25 @@ import com.luna.utils.QueryTable
 class StartUp: Application() {
 
     lateinit var audioFiles: List<Song>
-//    lateinit var database: MainDatabase
+    lateinit var database: MainDatabase
     override fun onCreate() {
         super.onCreate()
+        audioFiles = emptyList()
 
-        CoroutineScope(Dispatchers.IO).launch {
-            audioFiles = getAllAudioFiles(this@StartUp)
-
-        }
+//        CoroutineScope(Dispatchers.IO).launch {
+//            audioFiles = getAllAudioFiles(this@StartUp)
+//
+//        }
     }
 
-    private fun getAllAudioFiles(context: Context): List<Song> {
+    suspend fun getAllAudioFiles(context: Context): List<Song> = withContext(Dispatchers.IO) {
 
         val audio = mutableListOf<Song>()
 
-//        database = MainDatabase(this)
-//        val readOnlyDB = database.readOnlyMode()
+        database = MainDatabase(context)
+        val readOnlyDB = database.readOnlyMode()
+
+//        database.cleanStart()
 
 //        Log.d("Database", "${db}")
 
@@ -147,19 +150,25 @@ class StartUp: Application() {
                     track, mime, isDownload, data, uri
                 )
 
+                Log.d("Start Up", "Checking DB")
 
-
-//                if (!database.isBlacklisted(readOnlyDB, song)){
-//                    val writeToDB = database.writeMode()
-//                    if (database.ifExist(readOnlyDB, "SongList", song)) {
-//                        val entry = database.checkForUpdate(readOnlyDB, song)
-//                        if (song != entry) {
-//                            database.updateEntry(writeToDB, "SongList", song)
-//                        }
-//                    } else {
-//                        database.appendToTable(writeToDB,"SongList", song)
-//                    }
-//                }
+                if (!database.isBlacklisted(readOnlyDB, song)){
+                    Log.d("Start Up", "Running DB in write mode")
+                    val writeToDB = database.writeMode()
+                    if (database.ifExist(readOnlyDB, "SongList", song)) {
+                        Log.d("Start Up", "Running 'File of Theseus'")
+                        val entry = database.checkForUpdate(readOnlyDB, song)!!
+                        if (song != entry) {
+                            Log.d("Start Up", "Attempting to update entry $hash")
+                            database.updateEntry(writeToDB, "SongList", song)
+                        } else {
+                            Log.d("Start Up", "Skipping entry $hash")
+                        }
+                    } else {
+                        Log.d("Start Up", "Adding entry $hash to DB")
+                        database.appendToTable(writeToDB,"SongList", song)
+                    }
+                }
 
 
                 audio.add(song)
@@ -175,7 +184,13 @@ class StartUp: Application() {
             }
         }
 
-        return audio.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
+        val query = QueryTable(context)
+
+        val audioFiles = query.getSongs(readOnlyDB)
+
+        Log.d("Start Up", "Outputing DB: $audioFiles")
+
+        return@withContext audio.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
     }
 
 
