@@ -1,14 +1,21 @@
 package com.luna.main
 
+import android.Manifest
 import android.app.Application
 import android.content.ContentUris
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 
 import com.luna.data.Song
 import com.luna.utils.FileOfTheseus
@@ -17,21 +24,20 @@ import com.luna.utils.QueryTable
 
 class StartUp: Application() {
 
-    lateinit var audioFiles: List<Song>
     lateinit var database: MainDatabase
     override fun onCreate() {
         super.onCreate()
-        audioFiles = emptyList()
 
-//        CoroutineScope(Dispatchers.IO).launch {
-//            audioFiles = getAllAudioFiles(this@StartUp)
-//
-//        }
+        if(hasStoragePermission(this)) {
+            CoroutineScope(Dispatchers.IO).launch {
+                getAllAudioFiles(this@StartUp)
+
+            }
+        }
+
     }
 
-    suspend fun getAllAudioFiles(context: Context): List<Song> = withContext(Dispatchers.IO) {
-
-        val audio = mutableListOf<Song>()
+    suspend fun getAllAudioFiles(context: Context) = withContext(Dispatchers.IO) {
 
         database = MainDatabase(context)
         val readOnlyDB = database.readOnlyMode()
@@ -110,6 +116,8 @@ class StartUp: Application() {
 //        }
 
         cursor?.use {
+            val tasks = mutableListOf<Deferred<Unit>>()
+
             val idColumn = it.getColumnIndex(MediaStore.Audio.Media._ID)
             val nameColumn = it.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
             val titleColumn = it.getColumnIndex(MediaStore.Audio.Media.TITLE)
@@ -150,47 +158,50 @@ class StartUp: Application() {
                     track, mime, isDownload, data, uri
                 )
 
-                Log.d("Start Up", "Checking DB")
-
-                if (!database.isBlacklisted(readOnlyDB, song)){
-                    Log.d("Start Up", "Running DB in write mode")
-                    val writeToDB = database.writeMode()
-                    if (database.ifExist(readOnlyDB, "SongList", song)) {
-                        Log.d("Start Up", "Running 'File of Theseus'")
-                        val entry = database.checkForUpdate(readOnlyDB, song)!!
-                        if (song != entry) {
-                            Log.d("Start Up", "Attempting to update entry $hash")
-                            database.updateEntry(writeToDB, "SongList", song)
-                        } else {
-                            Log.d("Start Up", "Skipping entry $hash")
-                        }
-                    } else {
-                        Log.d("Start Up", "Adding entry $hash to DB")
-                        database.appendToTable(writeToDB,"SongList", song)
-                    }
-                }
-
-
-                audio.add(song)
-
                 Log.d("Song", "${
                     Song(
-                    hash, id, name, title,
-                    artist, artistId, album, albumId, albumartist,
-                    track, mime, isDownload, data, uri
-                )
+                        hash, id, name, title,
+                        artist, artistId, album, albumId, albumartist,
+                        track, mime, isDownload, data, uri
+                    )
                 }")
 
+                Log.d("Start Up", "Checking DB")
+
+                tasks.add(async(Dispatchers.IO) {
+
+                    if (!database.isBlacklisted(readOnlyDB, song)) {
+                        Log.d("Start Up", "Running DB in write mode")
+                        val writeToDB = database.writeMode()
+                        if (database.ifExist(readOnlyDB, "SongList", song)) {
+                            Log.d("Start Up", "Running 'File of Theseus'")
+                            val entry = database.checkForUpdate(readOnlyDB, song)!!
+                            if (song != entry) {
+                                Log.d("Start Up", "Attempting to update entry $hash")
+                                database.updateEntry(writeToDB, "SongList", song)
+                            } else {
+                                Log.d("Start Up", "Skipping entry $hash")
+                            }
+                        } else {
+                            Log.d("Start Up", "Adding entry $hash to DB")
+                            database.appendToTable(writeToDB, "SongList", song)
+                        }
+                    }
+                })
             }
+
+            tasks.awaitAll()
         }
 
-        val query = QueryTable(context)
+        return@withContext
+    }
 
-        val audioFiles = query.getSongs(readOnlyDB)
-
-        Log.d("Start Up", "Outputing DB: $audioFiles")
-
-        return@withContext audio.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
+    fun hasStoragePermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
     }
 
 

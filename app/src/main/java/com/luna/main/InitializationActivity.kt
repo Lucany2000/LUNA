@@ -15,7 +15,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,43 +26,22 @@ class InitializationActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED ||
-
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permission is not granted, request it
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
-                    REQUEST_PERMISSION_CODE
-                )
-            } else {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    REQUEST_PERMISSION_CODE
-                )
-            }
+        if ((application as StartUp).hasStoragePermission(this)) {
+            startActivity(Intent(this@InitializationActivity, MainActivity::class.java))
+            finish()
         } else {
-
-            CoroutineScope(Dispatchers.Main).launch {
-                val init = application as StartUp
-
-                init.audioFiles = init.getAllAudioFiles(this@InitializationActivity)
-
-                val intent = Intent(this@InitializationActivity, MainActivity::class.java)
-
-                startActivity(intent)
-
-            }
+            requestStoragePermissions()
         }
+    }
+
+    private fun requestStoragePermissions() {
+        val permissions = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+            arrayOf(Manifest.permission.READ_MEDIA_AUDIO)
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSION_CODE)
     }
 
     override fun onRequestPermissionsResult(
@@ -73,26 +51,14 @@ class InitializationActivity: AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == REQUEST_PERMISSION_CODE) {
-            // Check if permissions are granted
-            if (grantResults.isNotEmpty() &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED
-            ) {
-
-                CoroutineScope(Dispatchers.Main).launch {
-                    val init = application as StartUp
-                    init.audioFiles = init.getAllAudioFiles(this@InitializationActivity)
-
-                    val intent = Intent(this@InitializationActivity, MainActivity::class.java)
-
-                    startActivity(intent)
-                    finish()
-                }
-
-
-            } else {
-                errorMsg("No Audio Found", this)
+        if (requestCode == REQUEST_PERMISSION_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            CoroutineScope(Dispatchers.Main).launch {
+                (application as StartUp).getAllAudioFiles(this@InitializationActivity) // Fetch audio files
+                startActivity(Intent(this@InitializationActivity, MainActivity::class.java))
+                finish()
             }
+        } else {
+            errorMsg("No Audio Found", this)
         }
     }
 
@@ -106,7 +72,6 @@ class InitializationActivity: AppCompatActivity() {
         )
         rootLayout.orientation = LinearLayout.VERTICAL
         rootLayout.gravity = Gravity.CENTER
-        // Set a solid color background (you can use Color.parseColor for hex colors)
 
         val textView = TextView(context)
         textView.layoutParams = LinearLayout.LayoutParams(

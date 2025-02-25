@@ -42,7 +42,6 @@ import com.luna.utils.QueryTable
 
 class MainActivity : AppCompatActivity() {
 
-    private val REQUEST_PERMISSION_CODE = 0
     private var popUpWindow: PopupWindow? = null
     private val letterToFirstInstance = mutableMapOf<String, LinearLayout>()
     private lateinit var generatedSongOrder: List<Song>
@@ -50,57 +49,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-//        if (ContextCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.READ_MEDIA_AUDIO
-//            ) != PackageManager.PERMISSION_GRANTED ||
-//
-//            ContextCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.READ_EXTERNAL_STORAGE
-//            ) != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            // Permission is not granted, request it
-//            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-//                    ActivityCompat.requestPermissions(
-//                        this,
-//                        arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
-//                        REQUEST_PERMISSION_CODE
-//                    )
-//            } else {
-//                    ActivityCompat.requestPermissions(
-//                        this,
-//                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-//                        REQUEST_PERMISSION_CODE
-//                    )
-//            }
-//        } else {
-//            main()
-//
-//        }
-
         main()
     }
-
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//
-//        if (requestCode == REQUEST_PERMISSION_CODE) {
-//            // Check if permissions are granted
-//            if (grantResults.isNotEmpty() &&
-//                grantResults[0] == PackageManager.PERMISSION_GRANTED
-//            ) {
-//                main()
-//            } else {
-//               errorMsg("No Audio Found", this)
-//            }
-//        }
-//    }
 
     private fun main() {
 
@@ -108,11 +58,6 @@ class MainActivity : AppCompatActivity() {
         val readOnlyDB = query.readOnlyMode()
 
         val audioFiles = query.getSongs(readOnlyDB)
-
-//        val appInstance = application as StartUp
-//
-//        val audioFiles = appInstance.audioFiles
-
 
         val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
 
