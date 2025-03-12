@@ -17,7 +17,7 @@ class SongButtonAdapter(
     private val songs: List<Song>,
     private val createSongButton: (Song) -> LinearLayout): RecyclerView.Adapter<SongButtonAdapter.SongButtonViewHolder>() {
 
-    //TODO: Causing crashes, less frequent then CharButtonAdapter. Investigation required
+    //TODO: Fixed Crashes for now. Testing required.
 
     private val viewCache = SparseArray<Pair<LinearLayout,View>>()
 
@@ -47,9 +47,14 @@ class SongButtonAdapter(
             Pair(songButton, separator).also { viewCache[position] = it }
         }
 
+        val (songButton, separator) = cachedPair
+
+        (songButton.parent as? ViewGroup)?.removeView(songButton)
+        (separator.parent as? ViewGroup)?.removeView(separator)
+
         holder.songButtonContainer.removeAllViews() // Clear previous view if exists
-        holder.songButtonContainer.addView(cachedPair.first)
-        holder.songButtonContainer.addView(cachedPair.second)
+        holder.songButtonContainer.addView(songButton)
+        holder.songButtonContainer.addView(separator)
 
         //TODO: Find a way to get the XML separator to work
 //        val separator = holder.itemView.findViewById<View>(R.id.separator)
@@ -59,20 +64,5 @@ class SongButtonAdapter(
     }
 
     override fun getItemCount() = songs.size
-
-    fun getDataset(): Map<String, Int> {
-        val letterToFirstInstance = mutableMapOf<String, Int>()
-
-        songs.forEachIndexed { index, song ->
-            val title = song.getTitle()
-            val firstChar = BackEnd.removePrefix(title).firstOrNull()?.uppercase()
-
-            if (firstChar != null && !letterToFirstInstance.containsKey(firstChar)) {
-                letterToFirstInstance[firstChar] = index
-            }
-        }
-
-        return letterToFirstInstance
-    }
 
 }

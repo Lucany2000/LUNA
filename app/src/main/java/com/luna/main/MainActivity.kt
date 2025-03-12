@@ -41,6 +41,16 @@ class MainActivity : AppCompatActivity() {
             val audioFiles = query.getSongs(readOnlyDB)
             val sortedAudioFiles = BackEnd.sort(audioFiles)
             val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles).toList()
+            val letterToFirstInstance = mutableMapOf<String, Int>()
+
+            sortedAudioFiles.forEachIndexed { index, song ->
+                val title = song.getTitle()
+                val firstChar = BackEnd.removePrefix(title).firstOrNull()?.uppercase()
+
+                if (firstChar != null && !letterToFirstInstance.containsKey(firstChar)) {
+                    letterToFirstInstance[firstChar] = index
+                }
+            }
 
             withContext(Dispatchers.Main) {
                 // Initialize SongAdapter first so it updates letterToFirstInstance
@@ -50,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                 songRecyclerView.adapter = songAdapter
 
                 // Now pass the updated letterToFirstInstance to CharAdapter
-                val charAdapter = CharButtonAdapter(this@MainActivity, uniqueChars, songAdapter.getDataset()) { position ->
+                val charAdapter = CharButtonAdapter(this@MainActivity, uniqueChars, letterToFirstInstance) { position ->
                     songRecyclerView.smoothScrollToPosition(position) // Scroll to song position
                 }
                 charRecyclerView.adapter = charAdapter

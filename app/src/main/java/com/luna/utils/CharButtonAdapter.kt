@@ -19,8 +19,6 @@ class CharButtonAdapter(
     private val scrollToFirstInstance: (Int) -> Unit // Function to scroll to song
 ) : RecyclerView.Adapter<CharButtonAdapter.CharViewHolder>() {
 
-    //TODO: Causing crashes due to rapid movement. Investigation required. Priority based on annoyance and invasiveness
-
     private var popUpWindow: PopupWindow? = null
 
     class CharViewHolder(view: View) : RecyclerView.ViewHolder(view) {

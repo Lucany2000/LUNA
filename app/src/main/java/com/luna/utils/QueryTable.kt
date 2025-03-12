@@ -22,7 +22,13 @@ interface QueryTableInterface {
 
 
 internal class QueryTable(context: Context): MainDatabase(context), QueryTableInterface {
-
+    /**
+     *
+     * @param artist An optional parameter that will search for songs that are from this artist
+     *
+     * @param album An optional parameter that will search for songs that are a part this album
+     *
+     */
     override fun getSongs(db: SQLiteDatabase, artist: String?, album: String?): List<Song> {
 
         val baseQuery = StringBuilder("SELECT song FROM SongList")
