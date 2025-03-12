@@ -3,6 +3,7 @@ package com.luna.utils
 import android.content.Context
 import com.luna.data.MainDatabase
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import com.luna.data.Song
 import kotlinx.serialization.json.Json
 
@@ -21,7 +22,13 @@ interface QueryTableInterface {
 
 
 internal class QueryTable(context: Context): MainDatabase(context), QueryTableInterface {
-
+    /**
+     *
+     * @param artist An optional parameter that will search for songs that are from this artist
+     *
+     * @param album An optional parameter that will search for songs that are a part this album
+     *
+     */
     override fun getSongs(db: SQLiteDatabase, artist: String?, album: String?): List<Song> {
 
         val baseQuery = StringBuilder("SELECT song FROM SongList")
@@ -42,12 +49,20 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
 
         val cursor = db.rawQuery(baseQuery.toString(), queryArgs.toTypedArray())
 
+//        val query = """
+//        SELECT *
+//        FROM SongList """
+//
+//        val cursor = db.rawQuery(query, null)
+
         val results = mutableListOf<Song>()
-        if (cursor.moveToFirst()) {
+        while (cursor.moveToNext()) {
             val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
-            val songObj = Json.decodeFromString<Song>(serializedSong) // Deserialize back to Song
+            val songObj = Song.deserialize(serializedSong)
+//            val songObj = Json.decodeFromString<Song>(serializedSong) // Deserialize back to Song
             results.add(songObj)
         }
+
         cursor.close()
 
         return results
@@ -105,11 +120,11 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
 
         val combinedMap = mutableMapOf<String, MutableSet<Any>>()
         while (cursor.moveToNext()) {
-            val song = cursor.getString(cursor.getColumnIndexOrThrow("song"))
+            val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
             val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
             val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
 
-            combinedMap.computeIfAbsent("song") { mutableSetOf() }.add(Json.decodeFromString<Song>(song))
+            combinedMap.computeIfAbsent("song") { mutableSetOf() }.add(Song.deserialize(serializedSong)) //Json.decodeFromString<Song>(song)
             combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(artist)
             combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(album)
         }

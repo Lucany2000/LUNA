@@ -1,69 +1,48 @@
-package com.luna.test
+package com.luna.main
 
+import android.Manifest
+import android.app.Application
 import android.content.ContentUris
 import android.content.Context
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import android.view.Gravity
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+
 import com.luna.data.Song
-import com.luna.main.R
 import com.luna.utils.FileOfTheseus
+import com.luna.data.MainDatabase
 
-class TestActivity : AppCompatActivity() {
+class StartUp: Application() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.playground)
-        main()
+    lateinit var database: MainDatabase
+    override fun onCreate() {
+        super.onCreate()
+
+        if(hasStoragePermission(this)) {
+            CoroutineScope(Dispatchers.IO).launch {
+                getAllAudioFiles(this@StartUp)
+
+            }
+        }
+
     }
 
-    private fun main() {
-//        generateCharLine()
-        getAllAudioFiles(this)
+    suspend fun getAllAudioFiles(context: Context) = withContext(Dispatchers.IO) {
 
-    }
+        database = MainDatabase(context)
+        val readOnlyDB = database.readOnlyMode()
 
-//    fun generateCharLine() {
-//        val charLine = findViewById<LinearLayout>(R.id.charLine)
-//
-//        val alphabet = ('A'..'Z').toMutableList()
-//
-//        alphabet.addAll('1'..'9')
-//
-//        alphabet.map {
-//            val letter = TextView(this@TestActivity)
-//            letter.text = it.toString()
-//            letter.height = 100
-//            letter.width = 100
-//
-//            letter.gravity = Gravity.CENTER
-//            letter.textSize = 16f
-//
-//
-//            val currentColor = ContextCompat.getColor(this, R.color.light_gray)
-//
-////            val colorPressed = Color.BLUE
-//
-//            letter.background = ColorDrawable(currentColor)
-//
-//            charLine.addView(letter)
-//        }
-//    }
+//        database.cleanStart()
 
-    private fun getAllAudioFiles(context: Context): List<Song> {
-        //
-        val audio = mutableListOf<Song>()
-
-//        val db = MainDatabase(this)
-//
 //        Log.d("Database", "${db}")
 
 
@@ -136,6 +115,8 @@ class TestActivity : AppCompatActivity() {
 //        }
 
         cursor?.use {
+            val tasks = mutableListOf<Deferred<Unit>>()
+
             val idColumn = it.getColumnIndex(MediaStore.Audio.Media._ID)
             val nameColumn = it.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
             val titleColumn = it.getColumnIndex(MediaStore.Audio.Media.TITLE)
@@ -168,29 +149,60 @@ class TestActivity : AppCompatActivity() {
                     id
                 )
 
-                val hash = FileOfTheseus.calculateFileHash("/storage/emulated/0/Music/ｈｅｙ　ｙａ (synthwave80s remix).mp3")
+                val hash = FileOfTheseus.calculateFileHash(data)
 
-
-                audio.add(
-                    Song(
+                val song = Song(
                     hash, id, name, title,
                     artist, artistId, album, albumId, albumartist,
                     track, mime, isDownload, data, uri
-                )
                 )
 
                 Log.d("Song", "${
                     Song(
-                    hash, id, name, title,
-                    artist, artistId, album, albumId, albumartist,
-                    track, mime, isDownload, data, uri
-                )
+                        hash, id, name, title,
+                        artist, artistId, album, albumId, albumartist,
+                        track, mime, isDownload, data, uri
+                    )
                 }")
 
+                Log.d("Start Up", "Checking DB")
 
+                tasks.add(async(Dispatchers.IO) {
 
+                    if (!database.isBlacklisted(readOnlyDB, song)) {
+                        Log.d("Start Up", "Running DB in write mode")
+                        val writeToDB = database.writeMode()
+                        if (database.ifExist(readOnlyDB, "SongList", song)) {
+                            Log.d("Start Up", "Running 'File of Theseus'")
+                            val entry = database.checkForUpdate(readOnlyDB, song)!!
+                            if (song != entry) {
+                                Log.d("Start Up", "Attempting to update entry $hash")
+                                database.updateEntry(writeToDB, "SongList", song)
+                            } else {
+                                Log.d("Start Up", "Skipping entry $hash")
+                            }
+                        } else {
+                            Log.d("Start Up", "Adding entry $hash to DB")
+                            database.appendToTable(writeToDB, "SongList", song)
+                        }
+                    }
+                })
             }
+
+            tasks.awaitAll()
         }
-        return audio
+
+        return@withContext
     }
+
+    fun hasStoragePermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+
+
 }

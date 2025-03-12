@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.Cursor
 import android.util.Log
+import kotlinx.serialization.json.Json
 
 open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
@@ -30,7 +31,7 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
 //            )
 //        """.trimIndent()
 //
-//        val SQL_CREATE_BLACKLIST = """
+//        val SQL_CREATE_Blacklist = """
 //            CREATE TABLE IF NOT EXISTS Blacklist (
 //                hash TEXT PRIMARY KEY,
 //                title TEXT NOT NULL,
@@ -43,13 +44,21 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
 //        """.trimIndent()
 //
 //        db.execSQL(SQL_CREATE_SONGLIST)
-//        db.execSQL(SQL_CREATE_BLACKLIST)
+//        db.execSQL(SQL_CREATE_Blacklist)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE SongList ADD COLUMN newColumn TEXT DEFAULT 'default_value'")
         }
+    }
+
+    fun readOnlyMode(): SQLiteDatabase {
+        return readableDatabase
+    }
+
+    fun writeMode(): SQLiteDatabase {
+        return writableDatabase
     }
 
     internal open fun createTable(db: SQLiteDatabase, table_name: String, columns: Map<String, String>? = null ) {
@@ -87,12 +96,12 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
     }
 
     internal open fun isBlacklisted(db: SQLiteDatabase, song: Song): Boolean {
-        return ifExist(db, "blacklist", song)
+        return ifExist(db, "Blacklist", song)
     }
 
-    internal open fun blacklist(db: SQLiteDatabase, table_name: String, song: Song) {
+    internal open fun blacklist(db: SQLiteDatabase, song: Song) {
 
-        val songCursor = db.rawQuery("SELECT * FROM $table_name WHERE hash = ?", arrayOf(song.getHash().toString()))
+        val songCursor = db.rawQuery("SELECT * FROM 'SongList' WHERE hash = ?", arrayOf(song.getHash().toString()))
         if (songCursor.moveToFirst()) {
             val values = ContentValues()
             for (i in 0 until songCursor.columnCount) {
@@ -135,8 +144,8 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
                     }
                 }
             }
-            db.insert("blacklist", null, values)
-            db.delete(table_name, "hash = ?", arrayOf(song.getHash().toString()))
+            db.insert("Blacklist", null, values)
+            db.delete("SongList", "hash = ?", arrayOf(song.getHash().toString()))
         }
         songCursor.close()
     }
@@ -144,32 +153,61 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
     internal open fun appendToTable(db: SQLiteDatabase, table_name: String, song: Song) {
 
         val values = ContentValues().apply {
+            put("hash", song.getHash().toString())
             put("title", song.getTitle())
             put("artist", song.getArtist())
             put("album", song.getAlbum())
             put("albumArtist", song.getAlbumArtist())
-            put("song", song.jsonify())
+//            put("song", song.jsonify())
+            put("song", song.serialize())
             put("image", song.getImgSrc())
         }
         db.insert(table_name, null, values)
     }
 
-    internal open fun updateCollection(db: SQLiteDatabase, table_name: String, song: Song) {
+    internal open fun updateEntry(db: SQLiteDatabase, table_name: String, song: Song) {
 
         val values = ContentValues().apply {
             put("title", song.getTitle())
             put("artist", song.getArtist())
             put("album", song.getAlbum())
             put("albumArtist", song.getAlbumArtist())
-            put("song", song.jsonify())
+//            put("song", song.jsonify())
+            put("song", song.serialize())
             put("image", song.getImgSrc())
         }
         db.update(table_name, values, "hash = ?", arrayOf(song.getHash().toString()))
 
-        // Update blacklist if necessary
+        // Update Blacklist if necessary
         if (isBlacklisted(db, song)) {
-            db.update("blacklist", values, "hash = ?", arrayOf(song.getHash().toString()))
+            db.update("Blacklist", values, "hash = ?", arrayOf(song.getHash().toString()))
         }
+    }
+
+    internal open fun checkForUpdate(db: SQLiteDatabase, song: Song): Song? {
+        val cursor = db.rawQuery(
+            "SELECT song FROM 'SongList' WHERE hash = ?",
+            arrayOf(song.getHash().toString())
+        )
+
+        var songObj: Song? = null
+        if (cursor.moveToFirst()) {
+            val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
+            songObj = Song.deserialize(serializedSong)
+//            songObj = Json.decodeFromString(serializedSong)
+        }
+        cursor.close()
+        return songObj
+    }
+
+    internal open fun cleanStart() {
+        val db = writeMode()
+
+        db.execSQL("DROP TABLE IF EXISTS 'SongList'")
+        db.execSQL("DROP TABLE IF EXISTS 'Blacklist'")
+
+        createTable(db, "SongList")
+        createTable(db, "Blacklist")
     }
 
 }
