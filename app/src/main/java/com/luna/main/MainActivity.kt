@@ -1,36 +1,16 @@
 package com.luna.main
 
 import CharButtonAdapter
-import android.widget.PopupWindow
-import android.Manifest
-import android.content.ContentUris
-import android.net.Uri
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
-import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.ScrollView
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.StateListDrawable
-import android.provider.Settings
-import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
-import org.bson.Document
 
 
 import com.luna.data.Song
@@ -38,37 +18,17 @@ import com.luna.global.SongOrder
 import com.luna.utils.BackEnd
 import com.luna.utils.UI
 import com.luna.global.MusicPlayer
-import com.luna.utils.FileOfTheseus
-import com.luna.data.MainDatabase
 import com.luna.utils.QueryTable
 import com.luna.utils.SongButtonAdapter
 
 
 class MainActivity : AppCompatActivity() {
 
-    private var popUpWindow: PopupWindow? = null
-    private lateinit var generatedSongOrder: List<Song>
     private val query: QueryTable = QueryTable(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        main()
-    }
-
-    private fun main() {
-
-//        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
-
-//            val audioFiles2 = audioFiles.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
-
-//        val sortedAudioFiles = BackEnd.sort(grabFromData())
-
-//        Log.d("Database", "${grabFromData()}")
-
-//        val charLine = findViewById<LinearLayout>(R.id.charLine)
-
-//        val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles)
 
         val charRecyclerView: RecyclerView = findViewById(R.id.charRecyclerView)
         val songRecyclerView: RecyclerView = findViewById(R.id.recyclerView)
@@ -96,263 +56,7 @@ class MainActivity : AppCompatActivity() {
                 charRecyclerView.adapter = charAdapter
             }
         }
-
-//        val scrollView = findViewById<ScrollView>(R.id.scrollView)
-
-//        for (char in uniqueChars) {
-//            val button = UI.createCharButton(this, char)
-//
-//            val currentColor = (button.background as ColorDrawable).color
-//
-//            val colorPressed = Color.BLUE
-//
-//            button.setOnTouchListener { view, motionEvent ->
-//                when (motionEvent.action) {
-//                    MotionEvent.ACTION_DOWN -> {
-//
-//                        popUpWindow = UI.showBubbleText(this, view, button.text)
-//                        button.background = ColorDrawable(colorPressed)
-//
-//                        BackEnd.scrollToWordStartingWith(button.text.toString(), letterToFirstInstance ,scrollView)
-//
-//                        true // Consume the touch event
-//                    }
-//                    MotionEvent.ACTION_UP -> {
-//                        popUpWindow?.dismiss()
-//
-//                        button.background = ColorDrawable(currentColor)
-//
-//                        true // Consume the touch event
-//                    }
-//                    MotionEvent.ACTION_CANCEL -> {
-//                        popUpWindow?.dismiss()
-//
-//                        button.background = ColorDrawable(currentColor)
-//
-//                        true // Consume the touch event
-//                    }
-//                    else -> false
-//                }
-//            }
-//
-//            // Add the button to the LinearLayout
-//            charLine.addView(button)
-//        }
-
-//        generatedSongOrder = sortedAudioFiles
-//
-//        val letterToFirstInstance: MutableMap<String, Int>
-//
-//        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-//        recyclerView.layoutManager = LinearLayoutManager(this)
-//
-//        CoroutineScope(Dispatchers.IO).launch {
-//
-//            withContext(Dispatchers.Main) {
-//                recyclerView.adapter = SongButtonAdapter(this@MainActivity, sortedAudioFiles, letterToFirstInstance) {song ->
-//                    createSongButton(song)
-//                }
-//            }
-//        }
-
-        //{(0, title). (1, id)}
-//        val songButtons = sortedAudioFiles.map { song ->
-//            val button = createSongButton(song)
-//            val separator = UI.createSeparator(this)
-//
-//            rootLayout.addView(button)
-//            rootLayout.addView(separator)
-//
-//            Pair(button, separator)
-//        }
-//
-//        songButtons.forEach { (button, separator) ->
-//            val textview = button.getChildAt(0) as TextView
-//            val text = textview.text.toString()
-//            val firstChar = BackEnd.removePrefix(text).firstOrNull()?.uppercase()
-//
-//            if (firstChar != null && !letterToFirstInstance.containsKey(firstChar)) {
-//                letterToFirstInstance[firstChar] = button
-//            }
-//        }
-
-//        for ((key, linearLayout) in letterToFirstInstance) {
-//            val log = linearLayout.getChildAt(0) as TextView
-//            Log.d("Song", "${log.text}")
-//        }
-
-//        for (song in sortedAudioFiles) {
-//            val button = createSongButton(song)
-//            rootLayout.addView(button)
-//
-//            val separator = UI.createSeparator(this)
-//            rootLayout.addView(separator)
-//        }
-
     }
-
-//    private fun getAllAudioFiles(context: Context): List<Song> {
-//        //
-//        val audio = mutableListOf<Song>()
-//
-////        val db = MainDatabase(this)
-////
-////        Log.d("Database", "${db}")
-//
-//
-//        val projection = arrayOf(
-//            MediaStore.Audio.Media._ID,
-//            MediaStore.Audio.Media.TITLE,
-//            MediaStore.Audio.Media.DISPLAY_NAME,
-//            MediaStore.Audio.Media.ARTIST,
-//            MediaStore.Audio.Media.ARTIST_ID,
-//            MediaStore.Audio.Media.ALBUM,
-//            MediaStore.Audio.Media.ALBUM_ID,
-//            MediaStore.Audio.Media.ALBUM_ARTIST,
-//            MediaStore.Audio.Media.TRACK,
-//            MediaStore.Audio.Media.MIME_TYPE,
-//            MediaStore.Audio.Media.IS_DOWNLOAD,
-//            MediaStore.Audio.Media.DATA
-//        )
-//
-//        val selection = (
-//                "${MediaStore.Audio.Media.IS_RINGTONE} = 0"
-//                        + " AND ${MediaStore.Audio.Media.IS_NOTIFICATION} = 0"
-//                        + " AND ${MediaStore.Audio.Media.IS_ALARM} = 0"
-//                        + " AND ${MediaStore.Audio.Media.IS_MUSIC} != 0"
-//                //+ " AND ${MediaStore.Audio.Media.TITLE} LIKE 'T%'"
-//                )
-//
-//        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
-//
-//        val cursor = context.contentResolver.query(
-//            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-//            projection,
-//            selection,
-//            null,
-//            sortOrder
-//        )
-//
-//        // TODO: Investigate MediaStore.Donwloads causing crashes
-////        val cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-////            MergeCursor(
-////                arrayOf(
-////                    context.contentResolver.query(
-////                        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-////                        projection,
-////                        selection,
-////                        null,
-////                        sortOrder
-////                        //"${MediaStore.Audio.Media.DISPLAY_NAME} ASC"
-////                        //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
-////                    ),
-////                    context.contentResolver.query(
-////                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-////                        projection,
-////                        selection,
-////                        null,
-////                        sortOrder
-////                        //"${MediaStore.Audio.Media.DISPLAY_NAME} DESC"
-////                        //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
-////                    )
-////                )
-////            )
-////        } else {
-////            context.contentResolver.query(
-////                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-////                projection,
-////                null,
-////                null,
-////                sortOrder
-////                //"${MediaStore.Audio.Media.MIME_TYPE} = 'audio/mpeg'"
-////            )
-////        }
-//
-//        cursor?.use {
-//            val idColumn = it.getColumnIndex(MediaStore.Audio.Media._ID)
-//            val nameColumn = it.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME)
-//            val titleColumn = it.getColumnIndex(MediaStore.Audio.Media.TITLE)
-//            val artistColumn = it.getColumnIndex(MediaStore.Audio.Media.ARTIST)
-//            val artistIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ARTIST_ID)
-//            val albumColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-//            val albumIdColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
-//            val albumartistColumn = it.getColumnIndex(MediaStore.Audio.Media.ALBUM_ARTIST)
-//            val trackColumn = it.getColumnIndex(MediaStore.Audio.Media.TRACK)
-//            val mimeColumn = it.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
-//            val isDownloadColumn = it.getColumnIndex(MediaStore.Audio.Media.IS_DOWNLOAD)
-//            val dataColumn = it.getColumnIndex(MediaStore.Audio.Media.DATA)
-//
-//            while (it.moveToNext()) {
-//                val id = it.getLong(idColumn)
-//                val name = it.getString(nameColumn)
-//                val title = it.getString(titleColumn)
-//                val artist = it.getString(artistColumn) ?: "Unknown"
-//                val artistId = it.getLong(artistIdColumn)
-//                val album = it.getString(albumColumn)
-//                val albumId = it.getLong(albumIdColumn)
-//                val albumartist = it.getString(albumartistColumn) ?: "Unknown"
-//                val track = it.getLong(trackColumn)
-//                val mime = it.getString(mimeColumn)
-//                val isDownload = it.getLong(isDownloadColumn)
-//                val data = it.getString(dataColumn)
-//
-//                val uri = ContentUris.withAppendedId(
-//                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-//                    id
-//                )
-//
-//                val hash = FileOfTheseus.calculateFileHash(data)
-//
-//
-//                audio.add(Song(
-//                    hash, id, name, title,
-//                    artist, artistId, album, albumId, albumartist,
-//                    track, mime, isDownload, data, uri
-//                )
-//                )
-//
-//                Log.d("Song", "${Song(
-//                    hash, id, name, title,
-//                    artist, artistId, album, albumId, albumartist,
-//                    track, mime, isDownload, data, uri
-//                )}")
-//
-//
-//
-//            }
-//        }
-//        return audio
-//    }
-
-//    fun getAllAudioFilesAsync(context: Context, onComplete: (List<Song>) -> Unit) {
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val audioFiles = getAllAudioFiles(context)
-//            withContext(Dispatchers.Main) {
-//                onComplete(audioFiles)
-//            }
-//        }
-//    }
-
-
-    // TODO: Figure out what this does
-//    private fun onCharacterButtonClick(char: Char, songList: List<Audio>) {
-//        val charLine = findViewById<LinearLayout>(R.id.charLine)
-//
-//        val iterator = songList.iterator()
-//        var position = 0
-//        while (iterator.hasNext()) {
-//            val song = iterator.next()
-//            val sanitizedSong = removePrefix(song.title)
-//            val firstChar = sanitizedSong.trimStart().uppercase()[0]
-//            if (firstChar == char) {
-//                // Scroll to the first instance of the selected character
-//                val view = charLine.getChildAt(position)
-//                charLine.scrollTo(0, 0)
-//                break
-//            }
-//            position++
-//        }
-//    }
 
     fun createSongButton(audio: Song): LinearLayout  {
         val songButton = UI.createButton(this, audio)
@@ -420,120 +124,5 @@ class MainActivity : AppCompatActivity() {
 
         return songButton
     }
-
-//    fun createTextView(text: String, isTitle: Boolean, parent: LinearLayout): TextView {
-//        val textView = TextView(this)
-//        textView.text = text
-//        textView.maxLines = 1
-//        textView.ellipsize = TextUtils.TruncateAt.END
-//
-//        // Customize font size and rotation based on whether it's a title or artist
-//        textView.textSize = if (isTitle) 20f else 18f
-//
-//        //TODO: text slider if (text.length > parent.width)
-////        textView.rotation = if (text.length > parent.width) 90f else 0f
-//
-//        return textView
-//    }
-//
-//    fun createSeparator(): View {
-//        val separator = View(this)
-//        val layoutParams = LinearLayout.LayoutParams(
-//            LinearLayout.LayoutParams.MATCH_PARENT,
-//            resources.getDimensionPixelSize(R.dimen.separator_height)
-//        )
-//
-//        separator.layoutParams = layoutParams
-//        separator.setBackgroundColor(ContextCompat.getColor(this, R.color.black))
-//
-//        return separator
-//    }
-
-    fun errorMsg(text: String, context: Context) {
-
-//        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
-        val rootLayout = LinearLayout(context)
-        rootLayout.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-        )
-        rootLayout.orientation = LinearLayout.VERTICAL
-        rootLayout.gravity = Gravity.CENTER
-        // Set a solid color background (you can use Color.parseColor for hex colors)
-
-        val textView = TextView(context)
-        textView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-
-        textView.text = text
-        textView.gravity = Gravity.CENTER
-        textView.setTextColor(Color.BLACK)
-
-        textView.append("\n\nTo enable the permission, go to app settings.")
-        textView.setOnClickListener {
-            openAppSettings()
-        }
-
-        textView.setTextSize(24f)
-
-        rootLayout.addView(textView)
-        setContentView(rootLayout)
-    }
-
-    fun openAppSettings() {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", packageName, null)
-        intent.data = uri
-        startActivity(intent)
-    }
-
-//    fun showBubbleText(anchorView: View, bubbleText: CharSequence) {
-//
-//        val ovalShape = GradientDrawable().apply {
-//            shape = GradientDrawable.OVAL
-//            setColor(Color.BLUE)
-//            setSize(150, 150) // Set your desired size
-//        }
-//
-//        // Create a LinearLayout to hold the bubble text
-//        val bubbleLayout = LinearLayout(this)
-//        bubbleLayout.orientation = LinearLayout.VERTICAL
-//        bubbleLayout.background = ovalShape
-//        bubbleLayout.gravity = Gravity.CENTER
-////        bubbleLayout.setBackgroundResource(R.drawable.ic_circle) // Customize bubble background
-//
-//
-////        Toast.makeText(this,"bubble", Toast.LENGTH_SHORT).show()
-//
-//        // Create a TextView for the bubble text
-//        val bubbleTextView = TextView(this)
-//        bubbleTextView.text = bubbleText
-//        bubbleTextView.textSize = 16f
-//        bubbleTextView.gravity = Gravity.CENTER
-//        bubbleTextView.setTextColor(ContextCompat.getColor(this, R.color.white)) // Customize text color
-//        bubbleTextView.setPadding(16, 8, 16, 8)
-//
-//        // Add the TextView to the LinearLayout
-//        bubbleLayout.addView(bubbleTextView)
-//
-//        // Create a PopupWindow with the bubble text layout
-//        val popupWindow = PopupWindow(
-//            bubbleLayout,
-//            LinearLayout.LayoutParams.WRAP_CONTENT,
-//            LinearLayout.LayoutParams.WRAP_CONTENT
-//        )
-//
-//        // Show the PopupWindow below the anchor view
-//        popupWindow.showAsDropDown(anchorView, -275, -anchorView.height, Gravity.TOP)
-//
-//        popUpWindow = popupWindow
-//
-//        bubbleLayout.setOnClickListener {
-//            popupWindow.dismiss()
-//        }
-//
-//    }
 
 }

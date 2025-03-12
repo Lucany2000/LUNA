@@ -1,6 +1,7 @@
 package com.luna.utils
 
 import android.content.Context
+import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,10 @@ class SongButtonAdapter(
     private val songs: List<Song>,
     private val createSongButton: (Song) -> LinearLayout): RecyclerView.Adapter<SongButtonAdapter.SongButtonViewHolder>() {
 
+    //TODO: Causing crashes, less frequent then CharButtonAdapter. Investigation required
+
+    private val viewCache = SparseArray<Pair<LinearLayout,View>>()
+
     class SongButtonViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val songButtonContainer: LinearLayout = view.findViewById(R.id.mainButtonContainer)
     }
@@ -28,9 +33,29 @@ class SongButtonAdapter(
         val song = songs[position]
 
         // Create song button dynamically
-        val songButton = createSongButton(song)
+//        val songButton = createSongButton(song)
+//        holder.songButtonContainer.removeAllViews()
+//        holder.songButtonContainer.addView(songButton)
+//        val separator = UI.createSeparator(context)
+//        holder.songButtonContainer.addView(separator)
+
+//        var cachedPair: Pair<LinearLayout, View> = viewCache.get(position)
+
+        val cachedPair = viewCache[position] ?: run {
+            val songButton = createSongButton(song)
+            val separator = UI.createSeparator(context)
+            Pair(songButton, separator).also { viewCache[position] = it }
+        }
+
         holder.songButtonContainer.removeAllViews() // Clear previous view if exists
-        holder.songButtonContainer.addView(songButton)
+        holder.songButtonContainer.addView(cachedPair.first)
+        holder.songButtonContainer.addView(cachedPair.second)
+
+        //TODO: Find a way to get the XML separator to work
+//        val separator = holder.itemView.findViewById<View>(R.id.separator)
+//        if (separator != null) {
+//            holder.songButtonContainer.addView(separator)
+//        }
     }
 
     override fun getItemCount() = songs.size
@@ -50,27 +75,4 @@ class SongButtonAdapter(
         return letterToFirstInstance
     }
 
-//    private fun createSongButton(audio: Song, holder: SongButtonViewHolder): View {
-//        val songButton = UI.createButton(context, audio)
-//
-//        songButton.setOnClickListener {
-//            holder.floatingTitle.text = audio.getTitle()
-//            holder.floatingArtist.text = audio.getArtist()
-//            holder.floatingButtons.visibility = View.VISIBLE
-//
-//            if (MusicPlayer.checkIfPlayerEmpty() != null) {
-//                MusicPlayer.stop()
-//                MusicPlayer.release()
-//            }
-//
-//            MusicPlayer.createPlayer(context, audio.getUri())
-//            MusicPlayer.play()
-//
-//            SongOrder.createDefaultOrder(generatedSongOrder)
-//            SongOrder.setCurrentOrder(SongOrder.getDefault().toMutableMap())
-//            SongOrder.setCurrentSong(audio)
-//        }
-//
-//        return songButton
-//    }
 }

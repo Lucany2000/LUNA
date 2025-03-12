@@ -20,7 +20,6 @@ import kotlinx.coroutines.awaitAll
 import com.luna.data.Song
 import com.luna.utils.FileOfTheseus
 import com.luna.data.MainDatabase
-import com.luna.utils.QueryTable
 
 class StartUp: Application() {
 

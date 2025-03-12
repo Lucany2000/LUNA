@@ -5,9 +5,12 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+
 import com.luna.main.R
+import com.luna.utils.UI
 
 class CharButtonAdapter(
     private val context: Context,
@@ -15,6 +18,10 @@ class CharButtonAdapter(
     private val letterToFirstInstance: Map<String, Int>,
     private val scrollToFirstInstance: (Int) -> Unit // Function to scroll to song
 ) : RecyclerView.Adapter<CharButtonAdapter.CharViewHolder>() {
+
+    //TODO: Causing crashes due to rapid movement. Investigation required. Priority based on annoyance and invasiveness
+
+    private var popUpWindow: PopupWindow? = null
 
     class CharViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val button: TextView = view.findViewById(R.id.charButton)
@@ -32,14 +39,19 @@ class CharButtonAdapter(
         val currentColor = (holder.button.background as ColorDrawable).color
         val colorPressed = Color.BLUE
 
-        holder.button.setOnTouchListener { _, motionEvent ->
+        holder.button.setOnTouchListener { view, motionEvent ->
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {
+
+                    popUpWindow = UI.showBubbleText(context, view, char)
+
                     holder.button.setBackgroundColor(colorPressed)
-                    scrollToFirstInstance(letterToFirstInstance[char]!!) // Scroll to song
+                    scrollToFirstInstance(letterToFirstInstance[char]?: return@setOnTouchListener false)
                     true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    popUpWindow?.dismiss()
+
                     holder.button.setBackgroundColor(currentColor)
                     true
                 }
