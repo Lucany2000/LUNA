@@ -1,5 +1,6 @@
 package com.luna.main
 
+import CharButtonAdapter
 import android.widget.PopupWindow
 import android.Manifest
 import android.content.ContentUris
@@ -26,6 +27,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
 import org.bson.Document
 
@@ -38,13 +41,14 @@ import com.luna.global.MusicPlayer
 import com.luna.utils.FileOfTheseus
 import com.luna.data.MainDatabase
 import com.luna.utils.QueryTable
+import com.luna.utils.SongButtonAdapter
 
 
 class MainActivity : AppCompatActivity() {
 
     private var popUpWindow: PopupWindow? = null
-    private val letterToFirstInstance = mutableMapOf<String, LinearLayout>()
     private lateinit var generatedSongOrder: List<Song>
+    private val query: QueryTable = QueryTable(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,12 +58,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun main() {
 
-        val query = QueryTable(this)
-        val readOnlyDB = query.readOnlyMode()
-
-        val audioFiles = query.getSongs(readOnlyDB)
-
-        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
+//        val rootLayout = findViewById<LinearLayout>(R.id.rootLayout)
 
 //            val audioFiles2 = audioFiles.distinctBy { listOf(it.getTitle(),it.getArtist(), it.getAlbum()) }
 
@@ -67,76 +66,115 @@ class MainActivity : AppCompatActivity() {
 
 //        Log.d("Database", "${grabFromData()}")
 
-        val sortedAudioFiles = BackEnd.sort(audioFiles)
+//        val charLine = findViewById<LinearLayout>(R.id.charLine)
 
-        val charLine = findViewById<LinearLayout>(R.id.charLine)
+//        val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles)
 
-        val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles)
+        val charRecyclerView: RecyclerView = findViewById(R.id.charRecyclerView)
+        val songRecyclerView: RecyclerView = findViewById(R.id.recyclerView)
 
-        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+        charRecyclerView.layoutManager = LinearLayoutManager(this)
+        songRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        for (char in uniqueChars) {
-            val button = UI.createCharButton(this, char)
+        CoroutineScope(Dispatchers.IO).launch {
+            val readOnlyDB = query.readOnlyMode()
+            val audioFiles = query.getSongs(readOnlyDB)
+            val sortedAudioFiles = BackEnd.sort(audioFiles)
+            val uniqueChars = BackEnd.createKnownAlphabet(sortedAudioFiles).toList()
 
-            val currentColor = (button.background as ColorDrawable).color
-
-            val colorPressed = Color.BLUE
-
-            button.setOnTouchListener { view, motionEvent ->
-                when (motionEvent.action) {
-                    MotionEvent.ACTION_DOWN -> {
-
-                        popUpWindow = UI.showBubbleText(this, view, button.text)
-                        button.background = ColorDrawable(colorPressed)
-
-                        BackEnd.scrollToWordStartingWith(button.text.toString(), letterToFirstInstance ,scrollView)
-
-                        true // Consume the touch event
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        popUpWindow?.dismiss()
-
-                        button.background = ColorDrawable(currentColor)
-
-                        true // Consume the touch event
-                    }
-                    MotionEvent.ACTION_CANCEL -> {
-                        popUpWindow?.dismiss()
-
-                        button.background = ColorDrawable(currentColor)
-
-                        true // Consume the touch event
-                    }
-                    else -> false
+            withContext(Dispatchers.Main) {
+                // Initialize SongAdapter first so it updates letterToFirstInstance
+                val songAdapter = SongButtonAdapter(this@MainActivity, sortedAudioFiles) { song ->
+                    createSongButton(song)
                 }
-            }
+                songRecyclerView.adapter = songAdapter
 
-            // Add the button to the LinearLayout
-            charLine.addView(button)
+                // Now pass the updated letterToFirstInstance to CharAdapter
+                val charAdapter = CharButtonAdapter(this@MainActivity, uniqueChars, songAdapter.getDataset()) { position ->
+                    songRecyclerView.smoothScrollToPosition(position) // Scroll to song position
+                }
+                charRecyclerView.adapter = charAdapter
+            }
         }
 
-        generatedSongOrder = sortedAudioFiles
+//        val scrollView = findViewById<ScrollView>(R.id.scrollView)
+
+//        for (char in uniqueChars) {
+//            val button = UI.createCharButton(this, char)
+//
+//            val currentColor = (button.background as ColorDrawable).color
+//
+//            val colorPressed = Color.BLUE
+//
+//            button.setOnTouchListener { view, motionEvent ->
+//                when (motionEvent.action) {
+//                    MotionEvent.ACTION_DOWN -> {
+//
+//                        popUpWindow = UI.showBubbleText(this, view, button.text)
+//                        button.background = ColorDrawable(colorPressed)
+//
+//                        BackEnd.scrollToWordStartingWith(button.text.toString(), letterToFirstInstance ,scrollView)
+//
+//                        true // Consume the touch event
+//                    }
+//                    MotionEvent.ACTION_UP -> {
+//                        popUpWindow?.dismiss()
+//
+//                        button.background = ColorDrawable(currentColor)
+//
+//                        true // Consume the touch event
+//                    }
+//                    MotionEvent.ACTION_CANCEL -> {
+//                        popUpWindow?.dismiss()
+//
+//                        button.background = ColorDrawable(currentColor)
+//
+//                        true // Consume the touch event
+//                    }
+//                    else -> false
+//                }
+//            }
+//
+//            // Add the button to the LinearLayout
+//            charLine.addView(button)
+//        }
+
+//        generatedSongOrder = sortedAudioFiles
+//
+//        val letterToFirstInstance: MutableMap<String, Int>
+//
+//        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+//        recyclerView.layoutManager = LinearLayoutManager(this)
+//
+//        CoroutineScope(Dispatchers.IO).launch {
+//
+//            withContext(Dispatchers.Main) {
+//                recyclerView.adapter = SongButtonAdapter(this@MainActivity, sortedAudioFiles, letterToFirstInstance) {song ->
+//                    createSongButton(song)
+//                }
+//            }
+//        }
 
         //{(0, title). (1, id)}
-        val songButtons = sortedAudioFiles.map { song ->
-            val button = createSongButton(song)
-            val separator = UI.createSeparator(this)
-
-            rootLayout.addView(button)
-            rootLayout.addView(separator)
-
-            Pair(button, separator)
-        }
+//        val songButtons = sortedAudioFiles.map { song ->
+//            val button = createSongButton(song)
+//            val separator = UI.createSeparator(this)
 //
-        songButtons.forEach { (button, separator) ->
-            val textview = button.getChildAt(0) as TextView
-            val text = textview.text.toString()
-            val firstChar = BackEnd.removePrefix(text).firstOrNull()?.uppercase()
-
-            if (firstChar != null && !letterToFirstInstance.containsKey(firstChar)) {
-                letterToFirstInstance[firstChar] = button
-            }
-        }
+//            rootLayout.addView(button)
+//            rootLayout.addView(separator)
+//
+//            Pair(button, separator)
+//        }
+//
+//        songButtons.forEach { (button, separator) ->
+//            val textview = button.getChildAt(0) as TextView
+//            val text = textview.text.toString()
+//            val firstChar = BackEnd.removePrefix(text).firstOrNull()?.uppercase()
+//
+//            if (firstChar != null && !letterToFirstInstance.containsKey(firstChar)) {
+//                letterToFirstInstance[firstChar] = button
+//            }
+//        }
 
 //        for ((key, linearLayout) in letterToFirstInstance) {
 //            val log = linearLayout.getChildAt(0) as TextView
@@ -337,7 +375,11 @@ class MainActivity : AppCompatActivity() {
             MusicPlayer.createPlayer(this, audio.getUri())
             MusicPlayer.play()
 
-            SongOrder.createDefaultOrder(generatedSongOrder)
+            val readOnlyDB = query.readOnlyMode()
+
+            val audioFiles = query.getSongs(readOnlyDB)
+
+            SongOrder.createDefaultOrder(audioFiles)
             SongOrder.setCurrentOrder(SongOrder.getDefault().toMutableMap())
             SongOrder.setCurrentSong(audio)
 //
