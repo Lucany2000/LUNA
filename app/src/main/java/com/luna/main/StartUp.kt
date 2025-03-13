@@ -41,6 +41,7 @@ class StartUp: Application() {
         database = MainDatabase(context)
         val readOnlyDB = database.readOnlyMode()
 
+        //TODO: Investigate crashes/incomplete database curation
 //        database.cleanStart()
 
 //        Log.d("Database", "${db}")
