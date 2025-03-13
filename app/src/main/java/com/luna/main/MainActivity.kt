@@ -124,33 +124,40 @@ class MainActivity : AppCompatActivity() {
                 popupMenu.setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         R.id.delete -> {
-                            val writeToDB = query.writeMode()
-                            query.blacklist(writeToDB, audio)
 
-                            val position = generatedSongList.indexOf(audio)
-                            if (position != -1) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val writeToDB = query.writeMode()
+                                query.blacklist(writeToDB, audio)
+
+                                val position = generatedSongList.indexOf(audio)
                                 generatedSongList.toMutableList().removeAt(position)
-                                songAdapter.notifyItemRemoved(position)
-                            }
 
-                            val targetChar = BackEnd.removePrefix(audio.getTitle()).firstOrNull()?.uppercase()
-                            letterToFirstInstance.remove(targetChar)
-                            if (letterToFirstInstance[targetChar] == position) {
-                                generatedSongList.forEachIndexed { index, song ->
-                                    val title = song.getTitle()
-                                    val firstChar = BackEnd.removePrefix(title).firstOrNull()?.uppercase().toString()
+                                val targetChar = BackEnd.removePrefix(audio.getTitle()).firstOrNull()?.uppercase()
 
-                                    if (firstChar == targetChar && !letterToFirstInstance.containsKey(firstChar)) {
-                                        letterToFirstInstance[firstChar] = index
+                                letterToFirstInstance.remove(targetChar)
+                                if (letterToFirstInstance[targetChar] == position) {
+                                    generatedSongList.forEachIndexed { index, song ->
+                                        val title = song.getTitle()
+                                        val firstChar = BackEnd.removePrefix(title).firstOrNull()?.uppercase().toString()
+
+                                        if (firstChar == targetChar && !letterToFirstInstance.containsKey(firstChar)) {
+                                            letterToFirstInstance[firstChar] = index
+                                        }
                                     }
                                 }
-                            }
 
-                            if (!letterToFirstInstance.containsKey(targetChar)) {
-                                uniqueChars.remove(targetChar?.first())
-                            }
+                                if (!letterToFirstInstance.containsKey(targetChar)) {
+                                    uniqueChars.remove(targetChar?.first())
+                                }
 
-                            charAdapter.updateCharAdapter(uniqueChars, letterToFirstInstance)
+                                withContext(Dispatchers.Main) {
+                                    songAdapter.notifyItemRemoved(position)
+                                    charAdapter.updateCharAdapter(
+                                        uniqueChars,
+                                        letterToFirstInstance
+                                    )
+                                }
+                            }
 
                             true
                         }
