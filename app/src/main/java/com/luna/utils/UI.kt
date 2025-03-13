@@ -31,13 +31,11 @@ object UI {
         val titleTextView = createTextView(context, song.getTitle(), true, compoundTextView)
         val artistTextView = createTextView(context, song.getArtist(), false, compoundTextView)
 
-        val currentColor = ContextCompat.getColor(context, R.color.white)
-
-        val colorPressed = ContextCompat.getColor(context, R.color.light_gray)
-
         compoundTextView.addView(titleTextView)
         compoundTextView.addView(artistTextView)
 
+        val currentColor = ContextCompat.getColor(context, R.color.white)
+        val colorPressed = ContextCompat.getColor(context, R.color.light_gray)
         val stateListDrawable = StateListDrawable()
         stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(colorPressed))
         stateListDrawable.addState(intArrayOf(android.R.attr.state_focused), ColorDrawable(colorPressed))

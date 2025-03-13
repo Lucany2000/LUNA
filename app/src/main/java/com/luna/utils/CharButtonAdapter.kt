@@ -8,14 +8,16 @@ import android.view.ViewGroup
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.luna.data.Song
 
 import com.luna.main.R
+import com.luna.utils.BackEnd
 import com.luna.utils.UI
 
 class CharButtonAdapter(
     private val context: Context,
-    private val uniqueChars: List<Char>,
-    private val letterToFirstInstance: Map<String, Int>,
+    private var uniqueChars: List<Char>,
+    private var letterToFirstInstance: Map<String, Int>,
     private val scrollToFirstInstance: (Int) -> Unit // Function to scroll to song
 ) : RecyclerView.Adapter<CharButtonAdapter.CharViewHolder>() {
 
@@ -59,4 +61,17 @@ class CharButtonAdapter(
     }
 
     override fun getItemCount() = uniqueChars.size
+
+    fun updateCharAdapter(newUniqueChars: MutableList<Char>, newLetterToFirstInstance: MutableMap<String, Int>) {
+        letterToFirstInstance.toMutableMap().clear()
+        letterToFirstInstance = newLetterToFirstInstance.toMap()
+
+        uniqueChars.toMutableList().clear()
+        uniqueChars = newUniqueChars.toList()
+
+        notifyDataSetChanged()
+    }
+
+
+
 }
