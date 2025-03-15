@@ -1,11 +1,7 @@
 package com.luna.main
 
-import CharButtonAdapter
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.StateListDrawable
 import android.os.Bundle
 import android.util.Log
@@ -21,7 +17,8 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
-
+import android.app.Activity
+import android.widget.ImageButton
 
 import com.luna.data.Song
 import com.luna.global.SongOrder
@@ -30,6 +27,11 @@ import com.luna.utils.UI
 import com.luna.global.MusicPlayer
 import com.luna.utils.QueryTable
 import com.luna.utils.SongButtonAdapter
+import CharButtonAdapter
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import com.luna.global.ToolBar
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -47,6 +49,8 @@ class MainActivity : AppCompatActivity() {
 
         val charRecyclerView: RecyclerView = findViewById(R.id.charRecyclerView)
         val songRecyclerView: RecyclerView = findViewById(R.id.recyclerView)
+
+        val searchButton: ImageButton = findViewById(R.id.searchButton)
 
         charRecyclerView.layoutManager = LinearLayoutManager(this)
         songRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -78,6 +82,24 @@ class MainActivity : AppCompatActivity() {
                     songRecyclerView.smoothScrollToPosition(position) // Scroll to song position
                 }
                 charRecyclerView.adapter = charAdapter
+
+                searchButton.setOnClickListener {
+//                    val intent = Intent(this@MainActivity, SearchAlgoActivity::class.java)
+//                    startActivity(intent)
+                }
+
+                ToolBar.refresh(this@MainActivity)
+//                refresh()
+
+                //TODO: add Settings later
+                /*
+                val settingsButton: ImageButton = findViewById(R.id.settingsButton)
+                settingsButton.setOnClickListener {
+                    val intent = Intent(this@MainActivity, SettingsActivity::class.java)
+                    startActivity(intent)
+                }
+                */
+
             }
         }
     }
@@ -85,33 +107,48 @@ class MainActivity : AppCompatActivity() {
     fun createSongButton(audio: Song): LinearLayout  {
         val songButton = UI.createButton(this, audio)
 
-        val threeDotImageView = ImageView(this).apply {
+        val threeDotBackground = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.MATCH_PARENT).apply { // Circle size
-                gravity = Gravity.END // Align to right
-            }
-            val currentColor = ContextCompat.getColor(context, R.color.white)
-            val colorPressed = ContextCompat.getColor(context, R.color.light_gray)
+                gravity = Gravity.END
+                setBackgroundColor(Color.WHITE)
+                }
+        }
 
-            //TODO: Figure out how to have a working oval background for the button
-            val ovalDrawable = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(currentColor) // Default oval background color
-                setStroke(4, Color.BLACK) // Set border color and width
-                setSize(width + 24, height + 24) // Adjust size around the image
-            }
-
-            val stateListDrawable = StateListDrawable().apply {
-                addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(colorPressed)) // When pressed
-                addState(intArrayOf(), ColorDrawable(currentColor)) // Default state (unpressed)
+        val threeDotImageView = ImageView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT).apply { // Circle size
+                gravity = Gravity.CENTER // Align to right
             }
 
-            background = stateListDrawable // Set background to state list drawable
+//            val currentColor = ContextCompat.getColor(context, R.color.white)
+//            val colorPressed = ContextCompat.getColor(context, R.color.light_gray)
+//
+//            val ovalDefault = GradientDrawable().apply {
+//                shape = GradientDrawable.OVAL
+//                setColor(currentColor) // Default oval background color
+//                setSize(12, 12) // Adjust size around the image
+//            }
+//
+//            val ovalPressed = GradientDrawable().apply {
+//                shape = GradientDrawable.OVAL
+//                setColor(colorPressed) // Default oval background color
+//                setSize(12, 12)
+//            }
+//
+//            val stateListDrawable = StateListDrawable().apply {
+//                addState(intArrayOf(android.R.attr.state_pressed), ovalPressed)
+//                addState(intArrayOf(android.R.attr.state_focused), ovalPressed)
+//                addState(intArrayOf(), ovalDefault) // Default state (unpressed)
+//            }
+//
+//            background = stateListDrawable // Set background to state list drawable
 
-            scaleType = ImageView.ScaleType.CENTER
-            setPadding(12, 12, 12, 12) // Padding inside the circle
-            setImageResource(R.drawable.three_dot_menu) // Your 3-dot vector image
+            setBackgroundResource(R.drawable.three_dot_selector)
+
+            setImageResource(R.drawable.three_dot_icon) // Your 3-dot vector image
 
 
             setOnClickListener {
@@ -190,17 +227,10 @@ class MainActivity : AppCompatActivity() {
         )
         songButton.layoutParams = songButtonParams
 
-//        val threeDotImageParams = LinearLayout.LayoutParams(
-//            LinearLayout.LayoutParams.WRAP_CONTENT,
-//            LinearLayout.LayoutParams.WRAP_CONTENT
-//        )
-//        threeDotImageParams.gravity = Gravity.END // Align 3-dot menu to the right side
-//        threeDotImageView.layoutParams = threeDotImageParams
-
-
         // Add songButton and dotImageView to the container
+        threeDotBackground.addView(threeDotImageView)
         songButtonContainer.addView(songButton)
-        songButtonContainer.addView(threeDotImageView)
+        songButtonContainer.addView(threeDotBackground)
 
 
         songButton.setOnClickListener {
@@ -266,6 +296,21 @@ class MainActivity : AppCompatActivity() {
 
 
         return songButtonContainer
+    }
+
+    fun refresh(activity: Activity = this) {
+        val refreshButton: ImageButton = activity.findViewById(R.id.refreshButton)
+
+        refreshButton.setOnClickListener {
+            refreshButton.setBackgroundColor(ContextCompat.getColor(activity, R.color.light_gray))
+            CoroutineScope(Dispatchers.IO).launch {
+                (activity.application as StartUp).getAllAudioFiles(activity)
+
+                withContext(Dispatchers.Main) {
+                    activity.recreate()
+                }
+            }
+        }
     }
 
 }

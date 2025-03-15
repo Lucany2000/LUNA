@@ -4,13 +4,13 @@
     android:shape="oval">
 
     <solid
-        android:color="@color/light_gray" />
+        android:color="@android:color/darker_gray" />
 
     <!--        android:color="@android:color/holo_blue_bright"-->
 
 
     <size
-        android:width="36dp"
-        android:height="36dp" />
+        android:width="12px"
+        android:height="12px" />
 
 </shape>

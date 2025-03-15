@@ -24,12 +24,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:background="@drawable/ic_circle"
+            android:background="@drawable/ic_circle_selector"
             android:scaleType="fitCenter"
             android:src="@android:drawable/stat_notify_sync"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="10dp"
             app:tint="#FF000000" />
+
+
 
         <ImageButton
             android:id="@+id/searchButton"
@@ -37,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:src="@android:drawable/ic_menu_search"
-            android:background="@drawable/ic_circle"
+            android:background="@drawable/ic_circle_selector"
             android:scaleType="fitCenter"
             app:tint="#FF000000"/>
 

@@ -3,11 +3,14 @@ package com.luna.utils
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -125,4 +128,48 @@ object UI {
         return popupWindow
 
     }
+
+//    fun createCircleDrawable(icon: View, color: Int, x: Int, y: Int): GradientDrawable {
+//        return GradientDrawable().apply {
+//            shape = GradientDrawable.OVAL
+//            setColor(color)
+//            setSize(icon.width+x, icon.height+y)
+//        }
+//    }
+//
+//    fun createStateListDrawable(
+//        color: Int,
+//        x: Int,
+//        y: Int,
+//        defaultState: Drawable,
+//        pressedState: Drawable? = null,
+//        focusedState: Drawable? = null
+//    ): StateListDrawable {
+//        val stateListDrawable = StateListDrawable()
+//
+//        // Add the pressed state
+//        if (pressedState != null) {
+//            stateListDrawable.addState(
+//                intArrayOf(android.R.attr.state_pressed),
+//                pressedState
+//            )
+//        }
+//
+//        // Add the focused state
+//        if (focusedState != null) {
+//            stateListDrawable.addState(
+//                intArrayOf(android.R.attr.state_focused),
+//                focusedState
+//            )
+//        }
+//
+//        // Add the default state
+//        stateListDrawable.addState(
+//            intArrayOf(),
+//            defaultState
+//        )
+//
+//        return stateListDrawable
+//    }
+
 }
