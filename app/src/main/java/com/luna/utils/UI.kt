@@ -19,36 +19,11 @@ import com.luna.data.Song
 import com.luna.main.R
 
 object UI {
-
-    //Buttons
-
-    fun createButton(context: Context, song: Song): LinearLayout {
-        val compoundTextView = LinearLayout(context)
-        compoundTextView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        compoundTextView.orientation = LinearLayout.VERTICAL
-        compoundTextView.gravity = Gravity.CENTER
-
-        val titleTextView = createTextView(context, song.getTitle(), true, compoundTextView)
-        val artistTextView = createTextView(context, song.getArtist(), false, compoundTextView)
-
-        compoundTextView.addView(titleTextView)
-        compoundTextView.addView(artistTextView)
-
-        val currentColor = ContextCompat.getColor(context, R.color.white)
-        val colorPressed = ContextCompat.getColor(context, R.color.light_gray)
-        val stateListDrawable = StateListDrawable()
-        stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(colorPressed))
-        stateListDrawable.addState(intArrayOf(android.R.attr.state_focused), ColorDrawable(colorPressed))
-        stateListDrawable.addState(intArrayOf(android.R.attr.state_activated), ColorDrawable(colorPressed))
-        stateListDrawable.addState(intArrayOf(), ColorDrawable(currentColor))
-
-        compoundTextView.background = stateListDrawable
-
-
-        return compoundTextView
+    fun setClickCooldown(view: View, cooldownTime: Long = 1000L) {
+        view.isEnabled = false // Disable interaction
+        view.postDelayed({
+            view.isEnabled = true // Re-enable after cooldown
+        }, cooldownTime)
     }
 
     fun createTextView(context: Context, text: String, isTitle: Boolean, parent: LinearLayout): TextView {

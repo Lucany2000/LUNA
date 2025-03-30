@@ -113,20 +113,31 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
     override fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<Any>> {
 
         val query = """
-        SELECT song FROM SongList 
-        WHERE title LIKE ? OR COALESCE(albumartist, artist) LIKE ? OR album LIKE ?
-    """
-        val cursor = db.rawQuery(query, arrayOf("%$input%", "%$input%", "%$input%"))
+            SELECT 
+                CASE
+                    WHEN title LIKE ? THEN song
+                    WHEN artist LIKE ? THEN artist
+                    WHEN albumartist LIKE ? THEN albumartist
+                    WHEN album LIKE ? THEN CONCAT (album, ' - ', albumartist)
+                END AS result
+            FROM SongList
+            WHERE title LIKE ? OR artist LIKE ? OR albumartist LIKE ? OR album LIKE ?
+        """
+
+        val cursor = db.rawQuery(query, arrayOf("%$input%", "%$input%", "%$input%", "%$input%"))
 
         val combinedMap = mutableMapOf<String, MutableSet<Any>>()
+
         while (cursor.moveToNext()) {
             val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
             val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
+            val albumartist = cursor.getString(cursor.getColumnIndexOrThrow("albumartist"))
             val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
 
             combinedMap.computeIfAbsent("song") { mutableSetOf() }.add(Song.deserialize(serializedSong)) //Json.decodeFromString<Song>(song)
             combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(artist)
-            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(album)
+            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(albumartist)
+            combinedMap.computeIfAbsent("album") { mutableSetOf() }.add(album.split(" - ", limit = 2).let { it.firstOrNull() to it.getOrNull(1) })
         }
         cursor.close()
         return combinedMap
