@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.Cursor
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -200,14 +202,48 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
         return songObj
     }
 
-    internal open fun cleanStart() {
-        val db = writeMode()
+    internal open suspend fun regenerate(db: SQLiteDatabase) = withContext(Dispatchers.IO) {
 
-        db.execSQL("DROP TABLE IF EXISTS 'SongList'")
-        db.execSQL("DROP TABLE IF EXISTS 'Blacklist'")
+        db.beginTransaction()
+        try {
+            db.execSQL("DROP TABLE IF EXISTS 'SongList'")
+            createTable(db, "SongList")
+            Log.d("DatabaseHelper", "Table SongList reset successfully.")
 
-        createTable(db, "SongList")
-        createTable(db, "Blacklist")
+
+            db.execSQL("DROP TABLE IF EXISTS 'Blacklist'")
+            createTable(db, "Blacklist")
+            Log.d("DatabaseHelper", "Table Blacklist reset successfully.")
+
+            // Mark the transaction as successful
+            db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            Log.e("DatabaseHelper", "Error resetting tables: ${e.message}")
+        } finally {
+            db.endTransaction()
+        }
+
+    }
+
+    internal open fun clear(db: SQLiteDatabase) {
+
+        db.beginTransaction()
+        try {
+            db.execSQL("DELETE FROM SongList")
+            Log.d("DatabaseHelper", "Table SongList wiped successfully.")
+
+            db.execSQL("DELETE FROM Blacklist")
+            Log.d("DatabaseHelper", "Table Blacklist wiped successfully.")
+
+            // Mark the transaction as successful
+            db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            Log.e("DatabaseHelper", "Error wiping tables: ${e.message}")
+        } finally {
+            db.endTransaction() // Always end the transaction in the `finally` block
+        }
+
+
     }
 
 }

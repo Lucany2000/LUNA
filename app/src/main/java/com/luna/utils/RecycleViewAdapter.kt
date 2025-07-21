@@ -14,7 +14,7 @@ import com.luna.main.R
 class RecycleViewAdapter<T>(
     private val context: Context,
     private var list: List<T>,
-    private val createButton: (T) -> LinearLayout): RecyclerView.Adapter<RecycleViewAdapter.ButtonViewHolder>() {
+    private val createItemButton: (T) -> LinearLayout): RecyclerView.Adapter<RecycleViewAdapter.ButtonViewHolder>() {
 
     //TODO: Fixed Crashes for now. Testing required.
 
@@ -41,7 +41,7 @@ class RecycleViewAdapter<T>(
 //        var cachedPair: Pair<LinearLayout, View> = viewCache.get(position)
 
         val cachedPair = viewCache[position] ?: run {
-            val songButton = createButton(item)
+            val songButton = createItemButton(item)
             val separator = UI.createSeparator(context)
             Pair(songButton, separator).also { viewCache[position] = it }
         }

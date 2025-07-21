@@ -15,7 +15,7 @@ interface QueryTableInterface {
 
     fun getAlbums(db: SQLiteDatabase): Set<Pair<String, String>>
 
-    fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<Any>>
+    fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<*>>
 
 }
 
@@ -110,7 +110,7 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
     }
 
 
-    override fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<Any>> {
+    override fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<*>> {
 
         val query = """
             SELECT 
@@ -126,7 +126,11 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
 
         val cursor = db.rawQuery(query, arrayOf("%$input%", "%$input%", "%$input%", "%$input%"))
 
-        val combinedMap = mutableMapOf<String, MutableSet<Any>>()
+        val combinedMap = mutableMapOf<String, MutableSet<*>>()
+
+        val songSet = mutableSetOf<Song>()
+        val artistSet = mutableSetOf<String>()
+        val albumSet = mutableSetOf<Pair<String?, String?>>()
 
         while (cursor.moveToNext()) {
             val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
@@ -134,12 +138,22 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
             val albumartist = cursor.getString(cursor.getColumnIndexOrThrow("albumartist"))
             val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
 
-            combinedMap.computeIfAbsent("song") { mutableSetOf() }.add(Song.deserialize(serializedSong)) //Json.decodeFromString<Song>(song)
-            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(artist)
-            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(albumartist)
-            combinedMap.computeIfAbsent("album") { mutableSetOf() }.add(album.split(" - ", limit = 2).let { it.firstOrNull() to it.getOrNull(1) })
+            val song = Song.deserialize(serializedSong)
+            songSet.add(song)
+
+            artistSet.add(artist)
+            artistSet.add(albumartist)
+
+            val albumPair = album.split(" - ", limit = 2).let { it.firstOrNull() to it.getOrNull(1) }
+            albumSet.add(albumPair)
         }
         cursor.close()
+
+        combinedMap["song"] = songSet
+        combinedMap["artist"] = artistSet
+        combinedMap["album"] = albumSet
+
+
         return combinedMap
     }
 }

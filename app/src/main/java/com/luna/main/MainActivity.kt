@@ -39,11 +39,7 @@ class MainActivity : AppCompatActivity() {
     private val letterToFirstInstance: MutableMap<String, Int> = mutableMapOf()
     private lateinit var uniqueChars: MutableList<Char>
 
-    private val buttonCreation = object : ButtonCreation(this) {
-        override fun createSongButton(activity: AppCompatActivity, audio: Song): LinearLayout {
-            return super.createSongButton(activity, audio)
-        }
-    }
+    private val buttonCreation = object : ButtonCreation(this) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

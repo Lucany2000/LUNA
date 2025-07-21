@@ -39,10 +39,8 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
      * @param item usage is based on type. If of type: String, then it is implied to be an artist button.
      * Type: Song implies a song button and type: Pair implies an album button.
      *
-     * @param type applies to albums only with options: window and none. Window simply adds an enlarged image to the button.
-     *
      */
-    private inline fun <reified T> createButton(context: Context, item: T, type: String? = null): LinearLayout {
+    inline fun <reified T> createButton(context: Context, item: T): LinearLayout {
         val compoundTextView = LinearLayout(context)
         compoundTextView.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -71,8 +69,6 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
             }
 
             Pair::class -> {
-                when (type) {
-                    "none" -> {
                         @Suppress("UNCHECKED_CAST")
                         item as Pair<String, String>
                         val titleTextView =
@@ -82,25 +78,8 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
 
                         compoundTextView.addView(titleTextView)
                         compoundTextView.addView(artistTextView)
-                    }
-                    "window" -> {
-                        //TODO: Add image later
-
-                        @Suppress("UNCHECKED_CAST")
-                        item as Pair<String, String>
-                        val titleTextView =
-                            UI.createTextView(context, item.first, true, compoundTextView)
-                        val artistTextView =
-                            UI.createTextView(context, item.second, false, compoundTextView)
-
-                        compoundTextView.addView(titleTextView)
-                        compoundTextView.addView(artistTextView)
-                    }
-                }
             }
         }
-
-
 
         val currentColor = ContextCompat.getColor(context, R.color.white)
         val colorPressed = ContextCompat.getColor(context, R.color.light_gray)
@@ -282,8 +261,13 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
                 MusicPlayer.release()
             }
 
-            MusicPlayer.createPlayer(activity, audio.getUri())
-            MusicPlayer.play()
+            try {
+                MusicPlayer.createPlayer(activity, audio.getUri())
+                MusicPlayer.play()
+            } catch (e: Exception) {
+                Log.e("Music Player", "$e")
+            }
+
 
             val readOnlyDB = query.readOnlyMode()
 
@@ -323,14 +307,50 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
         }
 
         viewQButton.setOnClickListener {
-            if (!it.isEnabled) return@setOnClickListener
-            UI.setClickCooldown(it)
+//            if (!it.isEnabled) return@setOnClickListener
+//            UI.setClickCooldown(it)
             val intent = Intent(activity, SongOrderActivity::class.java)
             activity.startActivity(intent)
         }
 
 
         return songButtonContainer
+    }
+
+    fun createArtistButton(activity: AppCompatActivity, artist: String): LinearLayout {
+        val artistButton = createButton(activity, artist)
+
+        val artistButtonContainer = LinearLayout(activity)
+        artistButtonContainer.orientation = LinearLayout.HORIZONTAL
+        artistButtonContainer.gravity = Gravity.CENTER_VERTICAL
+
+        val artistButtonParams = LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f // Song button takes available space
+        )
+        artistButton.layoutParams = artistButtonParams
+
+        // Add songButton and dotImageView to the container
+        artistButtonContainer.addView(artistButton)
+
+        return artistButtonContainer
+    }
+
+    open fun createAlbumButton(activity: AppCompatActivity, album: Pair<String,String>): LinearLayout {
+        val albumButton = createButton(activity, album)
+
+        val albumButtonContainer = LinearLayout(activity)
+        albumButtonContainer.orientation = LinearLayout.HORIZONTAL
+        albumButtonContainer.gravity = Gravity.CENTER_VERTICAL
+
+        val albumButtonParams = LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f // Song button takes available space
+        )
+        albumButton.layoutParams = albumButtonParams
+
+        // Add songButton and dotImageView to the container
+        albumButtonContainer.addView(albumButton)
+
+        return albumButtonContainer
     }
 
 }

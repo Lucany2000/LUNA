@@ -50,35 +50,41 @@ object BackEnd {
 
         return when (T::class) {
             Song::class -> {
-                val sortedSongs = (list as List<Song>).sortedWith { item1, item2 ->
-                    val title1 = item1.getTitle() ?: ""
-                    val title2 = item2.getTitle() ?: ""
-
-                    // Remove common prefixes like "A" and "The" before sorting
-                    val title1WithoutPrefix = removePrefix(title1)
-                    val title2WithoutPrefix = removePrefix(title2)
-
-                    title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
-                }
-                sortedSongs as List<T>  // Safe cast
+//                val sortedSongs = (list as List<Song>).sortedWith { item1, item2 ->
+//                    val title1 = item1.getTitle() ?: ""
+//                    val title2 = item2.getTitle() ?: ""
+//
+//                    // Remove common prefixes like "A" and "The" before sorting
+//                    val title1WithoutPrefix = removePrefix(title1)
+//                    val title2WithoutPrefix = removePrefix(title2)
+//
+//                    title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
+//                }
+//                sortedSongs as List<T>  // Safe cast
+                (list as List<Song>).sortedBy {
+                    removePrefix(it.getTitle() ?: "").lowercase()
+                } as List<T>
             }
 
             String::class -> {
-                val sortedSongs = (list as List<String>).sortedWith { item1, item2 ->
-                    val title1 = item1 ?: ""
-                    val title2 = item2 ?: ""
-
-                    // Remove common prefixes like "A" and "The" before sorting
-                    val title1WithoutPrefix = removePrefix(title1)
-                    val title2WithoutPrefix = removePrefix(title2)
-
-                    title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
-                }
-                sortedSongs as List<T>  // Safe cast
+//                val sortedArtists = (list as List<String>).sortedWith { item1, item2 ->
+//                    val title1 = item1 ?: ""
+//                    val title2 = item2 ?: ""
+//
+//                    // Remove common prefixes like "A" and "The" before sorting
+//                    val title1WithoutPrefix = removePrefix(title1)
+//                    val title2WithoutPrefix = removePrefix(title2)
+//
+//                    title1WithoutPrefix.compareTo(title2WithoutPrefix, ignoreCase = true)
+//                }
+//                sortedArtists as List<T>  // Safe cast
+                (list as List<String>).sortedBy {
+                    removePrefix(it).lowercase()
+                } as List<T>
             }
 
             Pair::class -> {
-                val sortedSongs = (list as List<Pair<String, String>>).sortedWith { item1, item2 ->
+                val sortedAlbums = (list as List<Pair<String, String>>).sortedWith { item1, item2 ->
                     val title1 = item1.first ?: ""
                     val title2 = item2.first ?: ""
 
@@ -100,7 +106,7 @@ object BackEnd {
                     }
 
                 }
-                sortedSongs as List<T>  // Safe cast
+                sortedAlbums as List<T>  // Safe cast
             }
 
             else -> list
