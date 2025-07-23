@@ -245,6 +245,5 @@ open class MainDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_N
 
 
     }
-
 }
 

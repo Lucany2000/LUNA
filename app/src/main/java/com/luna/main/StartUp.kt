@@ -39,7 +39,6 @@ class StartUp: Application() {
     override fun onCreate() {
         super.onCreate()
 
-
         if(hasStoragePermission(this)) {
             CoroutineScope(Dispatchers.IO).launch {
 //                dbReset(this@StartUp)
@@ -135,19 +134,9 @@ class StartUp: Application() {
 
         val database = MainDatabase(context)
 
-        val writeToDB = database.writeMode()
 
-//        val dbJob = async(Dispatchers.IO) {
-//            dbReset(context)
-//        }
-//
-//        dbJob.await()
-//
 //        dbReset(context)
-
-//        database.clear(writeToDB)
-
-//        database.regenerate(writeToDB)
+        
 
 
         val volumes = MediaStore.getExternalVolumeNames(context).toTypedArray()
@@ -193,7 +182,6 @@ class StartUp: Application() {
 
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
-//        mediaScan(context)
 
         val cursor = context.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -239,9 +227,9 @@ class StartUp: Application() {
 //            )
 //        }
 
+        val actions = mutableListOf<DBActions>()
+
         cursor?.use {
-//            val tasks = mutableListOf<Deferred<Unit>>()
-            writeToDB.beginTransaction()
             val readOnlyDB = database.readOnlyMode()
 
             val idColumn = it.getColumnIndex(MediaStore.Audio.Media._ID)
@@ -256,8 +244,6 @@ class StartUp: Application() {
             val mimeColumn = it.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE)
             val isDownloadColumn = it.getColumnIndex(MediaStore.Audio.Media.IS_DOWNLOAD)
             val dataColumn = it.getColumnIndex(MediaStore.Audio.Media.DATA)
-
-            try {
 
                 while (it.moveToNext()) {
                     val id = it.getLong(idColumn)
@@ -287,13 +273,7 @@ class StartUp: Application() {
                     )
 
                     Log.d(
-                        "Start Up", "${
-                            Song(
-                                hash, id, name, title,
-                                artist, artistId, album, albumId, albumartist,
-                                track, mime, isDownload, data, uri
-                            )
-                        }"
+                        "Start Up", song.toString()
                     )
 
                     Log.d("Start Up", "Checking DB")
@@ -306,22 +286,70 @@ class StartUp: Application() {
                             val entry = database.checkForUpdate(readOnlyDB, song)!!
                             if (song != entry) {
                                 Log.d("Start Up", "Attempting to update entry $hash")
-                                database.updateEntry(writeToDB, "SongList", song)
+                                actions.add(DBActions.Update(song))
                             } else {
                                 Log.d("Start Up", "Skipping entry $hash")
                             }
                         } else {
                             Log.d("Start Up", "Adding entry $hash to DB")
-                            database.appendToTable(writeToDB, "SongList", song)
+                            actions.add(DBActions.Add(song))
                         }
                     }
+
                 }
 
-                writeToDB.setTransactionSuccessful()
-            } finally {
-                writeToDB.endTransaction()
-            }
+            readOnlyDB.close()
         }
 
+        val writeToDB = database.writeMode()
+
+        val batchSize = 500
+        val concurrency = 4
+
+        val dispatcher = Dispatchers.IO.limitedParallelism(concurrency)
+
+        coroutineScope {
+            actions.chunked(batchSize).map { chunk ->
+                async (dispatcher) {
+                    writeToDB.beginTransaction()
+                    try {
+                        chunk.forEach { action ->
+                            when (action) {
+                                is DBActions.Update -> database.updateEntry(writeToDB, "SongList", action.song)
+                                is DBActions.Add -> database.appendToTable(writeToDB, "SongList", action.song)
+                            }
+                        }
+                        writeToDB.setTransactionSuccessful()
+                    } finally {
+                        writeToDB.endTransaction()
+                    }
+                }
+            }.awaitAll()
+        }
+
+//        writeToDB.beginTransaction()
+//
+//        try {
+//            actions.forEach { action ->
+//                when (action) {
+//                    is DBActions.Update -> database.updateEntry(writeToDB, "SongList", action.song)
+//                    is DBActions.Add -> database.appendToTable(writeToDB, "SongList", action.song)
+//                }
+//            }
+//
+//            writeToDB.setTransactionSuccessful()
+//        } catch (e: Exception) {
+//            Log.e("Transaction", "Error during DB transaction", e)
+//        } finally {
+//            writeToDB.endTransaction()
+//            writeToDB.close()
+//        }
+
+        return@withContext
+    }
+
+    sealed class DBActions {
+        data class Update(val song: Song): DBActions()
+        data class Add(val song: Song): DBActions()
     }
 }
