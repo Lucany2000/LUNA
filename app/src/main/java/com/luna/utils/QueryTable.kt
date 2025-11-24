@@ -115,16 +115,24 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
         val query = """
             SELECT 
                 CASE
-                    WHEN title LIKE ? THEN song
-                    WHEN artist LIKE ? THEN artist
-                    WHEN albumartist LIKE ? THEN albumartist
-                    WHEN album LIKE ? THEN CONCAT (album, ' - ', albumartist)
-                END AS result
+                    WHEN title LIKE :search THEN song
+                END AS song,
+                CASE
+                    WHEN artist LIKE :search THEN artist
+                    WHEN albumartist LIKE :search THEN albumartist
+                END AS artist,
+                CASE
+                    WHEN album LIKE :search THEN 
+                        CASE
+                            WHEN albumartist IS NOT NULL AND albumartist != '' THEN album || ' - ' || albumartist
+                            ELSE album || ' - ' || artist
+                        END
+                END AS album
             FROM SongList
-            WHERE title LIKE ? OR artist LIKE ? OR albumartist LIKE ? OR album LIKE ?
+            WHERE title LIKE :search OR artist LIKE :search OR albumartist LIKE :search OR album LIKE :search
         """
 
-        val cursor = db.rawQuery(query, arrayOf("%$input%", "%$input%", "%$input%", "%$input%"))
+        val cursor = db.rawQuery(query, arrayOf("%$input%"))
 
         val combinedMap = mutableMapOf<String, MutableSet<*>>()
 
@@ -132,22 +140,23 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
         val artistSet = mutableSetOf<String>()
         val albumSet = mutableSetOf<Pair<String?, String?>>()
 
-        while (cursor.moveToNext()) {
-            val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
-            val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
-            val albumartist = cursor.getString(cursor.getColumnIndexOrThrow("albumartist"))
-            val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
+        cursor.use { c ->
+            while (c.moveToNext()) {
+                val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
+                val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
+//            val albumartist = cursor.getString(cursor.getColumnIndexOrThrow("albumartist"))
+                val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
 
-            val song = Song.deserialize(serializedSong)
-            songSet.add(song)
+                serializedSong?.takeIf { it.isNotBlank() }?.let {s -> songSet.add(Song.deserialize(s))}
 
-            artistSet.add(artist)
-            artistSet.add(albumartist)
+                artist?.takeIf { it.isNotBlank() }?.let {a -> artistSet.add(a)}
 
-            val albumPair = album.split(" - ", limit = 2).let { it.firstOrNull() to it.getOrNull(1) }
-            albumSet.add(albumPair)
+                album?.takeIf { it.isNotBlank() }?.let {a ->
+                    val albumPair = a.split(" - ", limit = 2).let { it.firstOrNull() to it.getOrNull(1) }
+                    albumSet.add(albumPair)
+                }
+            }
         }
-        cursor.close()
 
         combinedMap["song"] = songSet
         combinedMap["artist"] = artistSet

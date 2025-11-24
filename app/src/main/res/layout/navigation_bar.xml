@@ -12,16 +12,19 @@
     app:layout_constraintEnd_toEndOf="parent">
 
     <com.google.android.material.tabs.TabItem
+        android:id="@+id/TrackNavi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Tracks" />
 
     <com.google.android.material.tabs.TabItem
+        android:id="@+id/AlbumNavi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Albums" />
 
     <com.google.android.material.tabs.TabItem
+        android:id="@+id/ArtistNavi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Artists" />

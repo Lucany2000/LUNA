@@ -6,9 +6,33 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-        <include layout="@layout/tool_bar" />
+<!--        <include-->
+<!--            android:id="@+id/mainToolBar"-->
+<!--            layout="@layout/tool_bar"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintBottom_toTopOf="@id/mainNavBar" />-->
 
-        <include layout="@layout/navigation_bar" />
+<!--    <include-->
+<!--        android:id="@+id/testToolBar"-->
+<!--        layout="@layout/test_tool_bar" />-->
+
+<!--        <include-->
+<!--            android:id="@+id/mainNavBar"-->
+<!--            layout="@layout/navigation_bar"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/testToolBar"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintBottom_toTopOf="@id/recyclerView"/>-->
+
+    <include layout="@layout/tool_bar" />
+
+    <include layout="@layout/navigation_bar" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

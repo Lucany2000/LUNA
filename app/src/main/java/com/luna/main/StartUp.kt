@@ -129,7 +129,7 @@ class StartUp: Application() {
         }
     }
 
-
+    //TODO: Investigate whether suspended function is needed
     suspend fun getAllAudioFiles(context: Context) = withContext(Dispatchers.IO) {
 
         val database = MainDatabase(context)
@@ -326,6 +326,8 @@ class StartUp: Application() {
                 }
             }.awaitAll()
         }
+
+        //TODO: Performance check
 
 //        writeToDB.beginTransaction()
 //

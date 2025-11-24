@@ -18,6 +18,7 @@ import android.widget.ImageButton
 import CharButtonAdapter
 import android.content.Context
 import android.graphics.Color
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat.startActivity
 
 import com.luna.data.Song
@@ -84,8 +85,8 @@ class MainActivity : AppCompatActivity() {
                 searchButton.setOnClickListener {
                     if (!it.isEnabled) return@setOnClickListener
                     UI.setClickCooldown(it)
-//                    val intent = Intent(this@MainActivity, SearchAlgoActivity::class.java)
-//                    startActivity(intent)
+                    val intent = Intent(this@MainActivity, SearchAlgoActivity::class.java)
+                    startActivity(intent)
                 }
 
                 val refreshButton: ImageButton = findViewById(R.id.refreshButton)

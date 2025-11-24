@@ -10,7 +10,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
-import android.widget.SearchView
+import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -76,6 +76,8 @@ class SearchAlgoActivity: AppCompatActivity() {
 //                            if (!item.isEnabled) return@setOnMenuItemClickListener true
 //                            item.isEnabled = false
 //                            Handler(Looper.getMainLooper()).postDelayed({ item.isEnabled = true }, 1000)
+
+                                //TODO: Update if all instances of an artist, album, alnumartist have been deleted
 
                                 CoroutineScope(Dispatchers.IO).launch {
                                     val writeToDB = query.writeMode()
@@ -211,6 +213,9 @@ class SearchAlgoActivity: AppCompatActivity() {
         setContentView(R.layout.search_engine)
 
         val searchView = findViewById<SearchView>(R.id.searchBar)
+        searchView.isIconified = false
+        searchView.queryHint = "Search"
+        searchView.clearFocus()
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(input: String?): Boolean {
