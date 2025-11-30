@@ -16,33 +16,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <ScrollView
+        android:id="@+id/QueryScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/searchBar"
+        app:layout_constraintBottom_toTopOf="@+id/floatingButton">
+
+    <LinearLayout
+        android:id="@+id/QueryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
     <LinearLayout
         android:id="@+id/songDisplayContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/artistDisplayContainer"
-        app:layout_constraintTop_toBottomOf="@id/searchBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:visibility="gone">
 
         <TextView
             android:id="@+id/songQueryTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:textSize="18sp"
             android:text="Songs"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/songRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/songQueryTitle"/>
 
     </LinearLayout>
@@ -51,30 +58,25 @@
     <LinearLayout
         android:id="@+id/artistDisplayContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/albumDisplayContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/songDisplayContainer">
 
         <TextView
             android:id="@+id/artistQueryTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:textSize="18sp"
             android:text="Artist"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/artistRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/artistQueryTitle" />
 
 
@@ -83,34 +85,32 @@
     <LinearLayout
         android:id="@+id/albumDisplayContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/floatingButton"
         app:layout_constraintTop_toBottomOf="@id/artistDisplayContainer"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:visibility="gone">
 
         <TextView
             android:id="@+id/albumQueryTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:textSize="18sp"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
             android:text="Albums"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/albumRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/albumQueryTitle"
             />
 
     </LinearLayout>
+
+    </LinearLayout>
+
+    </ScrollView>
 
     <include layout="@layout/floating_button"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

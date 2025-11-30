@@ -1,12 +1,17 @@
 package com.luna.main
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.MenuInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
@@ -37,6 +42,7 @@ class SearchAlgoActivity: AppCompatActivity() {
     private lateinit var sortedSongQuery: List<Song>
 
     private val buttonCreation = object : ButtonCreation(this) {
+        //TODO: weird border problem investigate later, test case: "aa"
         override fun createSongButton(activity: AppCompatActivity, audio: Song): LinearLayout {
             val songButton = createButton(activity, audio)
 
@@ -208,6 +214,27 @@ class SearchAlgoActivity: AppCompatActivity() {
 
     }
 
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+
+            val searchView = findViewById<SearchView>(R.id.searchBar)
+            val searchEditText = searchView.findViewById<EditText>(
+                androidx.appcompat.R.id.search_src_text
+            )
+
+            if (searchEditText != null && searchEditText.hasFocus()) {
+                val outRect = Rect()
+                searchEditText.getGlobalVisibleRect(outRect)
+
+                if (!outRect.contains(ev.rawX.toInt(), ev.rawY.toInt())) {
+                    searchEditText.clearFocus()
+                    hideKeyboard(searchEditText)
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.search_engine)
@@ -216,6 +243,10 @@ class SearchAlgoActivity: AppCompatActivity() {
         searchView.isIconified = false
         searchView.queryHint = "Search"
         searchView.clearFocus()
+
+        val songDisplayContainer = findViewById<LinearLayout>(R.id.songDisplayContainer)
+        val artistDisplayContainer = findViewById<LinearLayout>(R.id.artistDisplayContainer)
+        val albumDisplayContainer = findViewById<LinearLayout>(R.id.albumDisplayContainer)
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(input: String?): Boolean {
@@ -235,77 +266,24 @@ class SearchAlgoActivity: AppCompatActivity() {
 
                         withContext(Dispatchers.Main){
                             if (songQueryResult.isNotEmpty()) {
+                                songDisplayContainer.visibility = View.VISIBLE
                                 displaySongs(sortedSongQuery)
                             }
 
                             if (artistQueryResult.isNotEmpty()) {
+                                artistDisplayContainer.visibility = View.VISIBLE
                                 displayArtists(sortedArtistQuery)
                             }
 
                             if (albumQueryResult.isNotEmpty()) {
+                                albumDisplayContainer.visibility = View.VISIBLE
                                 displayAlbum(sortedAlbumQuery)
                             }
                         }
-
-//                        if (songQueryResult.isNotEmpty()) {
-//                            sortedSongQuery = BackEnd.sort(songQueryResult)
-//                            val songDisplayContainer = findViewById<LinearLayout>(R.id.songDisplayContainer)
-//                            val songQueryTitle = findViewById<TextView>(R.id.songQueryTitle)
-//                            val songRecyclerView: RecyclerView = findViewById(R.id.songRecyclerView)
-//
-//                            songAdapter = RecycleViewAdapter(this@SearchAlgoActivity, sortedSongQuery) { song ->
-//                                buttonCreation.createSongButton(this@SearchAlgoActivity, song)
-//                            }
-//
-//                            songRecyclerView.adapter = songAdapter
-//
-//                            withContext(Dispatchers.Main) {
-//                                songDisplayContainer.visibility = View.VISIBLE
-//                                songQueryTitle.text = "Songs (${sortedSongQuery.size})"
-//                                songRecyclerView.layoutManager = LinearLayoutManager(this@SearchAlgoActivity)
-//                            }
-//
-//                        }
-//
-//                        if (artistQueryResult.isNotEmpty()) {
-//                            val sortedArtistQuery = BackEnd.sort(artistQueryResult)
-//                            val artistDisplayContainer = findViewById<LinearLayout>(R.id.artistDisplayContainer)
-//                            val artistQueryTitle = findViewById<TextView>(R.id.artistQueryTitle)
-//                            val artistRecyclerView: RecyclerView = findViewById(R.id.artistRecyclerView)
-//
-//                            artistAdapter = RecycleViewAdapter(this@SearchAlgoActivity, sortedArtistQuery) { artist ->
-//                                buttonCreation.createArtistButton(this@SearchAlgoActivity, artist)
-//                            }
-//                            artistRecyclerView.adapter = artistAdapter
-//
-//                            withContext(Dispatchers.Main) {
-//                                artistDisplayContainer.visibility = View.VISIBLE
-//                                artistQueryTitle.text = "Artists (${sortedArtistQuery.size})"
-//                                artistRecyclerView.layoutManager = LinearLayoutManager(this@SearchAlgoActivity)
-//                            }
-//
-//                        }
-//
-//                        if (albumQueryResult.isNotEmpty()) {
-//                            val sortedAlbumQuery = BackEnd.sort(albumQueryResult)
-//                            val albumDisplayContainer = findViewById<LinearLayout>(R.id.albumDisplayContainer)
-//                            val albumQueryTitle = findViewById<TextView>(R.id.albumQueryTitle)
-//                            val albumRecyclerView: RecyclerView = findViewById(R.id.albumRecyclerView)
-//
-//                            albumAdapter = RecycleViewAdapter(this@SearchAlgoActivity, sortedAlbumQuery) { album ->
-//                                buttonCreation.createAlbumButton(this@SearchAlgoActivity, album)
-//                            }
-//                            albumRecyclerView.adapter = albumAdapter
-//
-//                            withContext(Dispatchers.Main) {
-//                                albumDisplayContainer.visibility = View.VISIBLE
-//                                albumQueryTitle.text = "Albums (${sortedAlbumQuery.size})"
-//                                albumRecyclerView.layoutManager = LinearLayoutManager(this@SearchAlgoActivity)
-//                            }
-//
-//                        }
                     }
                 }
+
+                searchView.clearFocus()
 
                 return true
             }
@@ -313,42 +291,56 @@ class SearchAlgoActivity: AppCompatActivity() {
             override fun onQueryTextChange(input: String?): Boolean {
                 // Handle text change (e.g., filter a list dynamically)
 
-//                if (!input.isNullOrBlank()) {
-//                    CoroutineScope(Dispatchers.IO).launch {
-//                        val readOnlyDB = query.readOnlyMode()
-//                        val queryResult = query.searchAlgo(readOnlyDB, input)
-//                        val songQueryResult = queryResult["song"]?.filterIsInstance<Song>() ?: emptyList()
-//                        val artistQueryResult = queryResult["artist"]?.filterIsInstance<String>() ?: emptyList()
-//                        val albumQueryResult = queryResult["album"]?.filterIsInstance<Pair<String, String>>() ?: emptyList()
-//
-//                        sortedSongQuery = BackEnd.sort(songQueryResult)
-//                        val sortedArtistQuery = BackEnd.sort(artistQueryResult)
-//                        val sortedAlbumQuery = BackEnd.sort(albumQueryResult)
-//
-//                        withContext(Dispatchers.Main){
-//                            if (songQueryResult.isNotEmpty()) {
-//                                displaySongs(sortedSongQuery)
-//                            }
-//
-//                            if (artistQueryResult.isNotEmpty()) {
-//                                displayArtists(sortedArtistQuery)
-//                            }
-//
-//                            if (albumQueryResult.isNotEmpty()) {
-//                                displayAlbum(sortedAlbumQuery)
-//                            }
-//                        }
-//                    }
-//                }
+                if (!input.isNullOrBlank()) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val readOnlyDB = query.readOnlyMode()
+                        val queryResult = query.searchAlgo(readOnlyDB, input)
+                        val songQueryResult = queryResult["song"]?.filterIsInstance<Song>() ?: emptyList()
+                        val artistQueryResult = queryResult["artist"]?.filterIsInstance<String>() ?: emptyList()
+                        val albumQueryResult = queryResult["album"]?.filterIsInstance<Pair<String, String>>() ?: emptyList()
+
+                        sortedSongQuery = BackEnd.sort(songQueryResult)
+                        val sortedArtistQuery = BackEnd.sort(artistQueryResult)
+                        val sortedAlbumQuery = BackEnd.sort(albumQueryResult)
+
+                        withContext(Dispatchers.Main){
+                            if (songQueryResult.isNotEmpty()) {
+                                songDisplayContainer.visibility = View.VISIBLE
+                                displaySongs(sortedSongQuery)
+                            } else {
+                                songDisplayContainer.visibility = View.GONE
+                            }
+
+                            if (artistQueryResult.isNotEmpty()) {
+                                artistDisplayContainer.visibility = View.VISIBLE
+                                displayArtists(sortedArtistQuery)
+                            } else {
+                                artistDisplayContainer.visibility = View.GONE
+                            }
+
+                            if (albumQueryResult.isNotEmpty()) {
+                                albumDisplayContainer.visibility = View.VISIBLE
+                                displayAlbum(sortedAlbumQuery)
+                            } else{
+                                albumDisplayContainer.visibility = View.GONE
+                            }
+                        }
+                    }
+                } else {
+                    songDisplayContainer.visibility = View.GONE
+                    artistDisplayContainer.visibility = View.GONE
+                    albumDisplayContainer.visibility = View.GONE
+                }
 
                 return true
             }
         })
-
     }
 
+    //TODO: adding highlights of where the input is located will be held off till future, maybe.
+
     private fun displaySongs(sortedSongQuery: List<Song>) {
-        val songDisplayContainer = findViewById<LinearLayout>(R.id.songDisplayContainer)
+//        val songDisplayContainer = findViewById<LinearLayout>(R.id.songDisplayContainer)
         val songQueryTitle = findViewById<TextView>(R.id.songQueryTitle)
         val songRecyclerView: RecyclerView = findViewById(R.id.songRecyclerView)
 
@@ -358,13 +350,19 @@ class SearchAlgoActivity: AppCompatActivity() {
 
         songRecyclerView.adapter = songAdapter
 
-        songDisplayContainer.visibility = View.VISIBLE
+//        songDisplayContainer.visibility = View.VISIBLE
         songQueryTitle.text = "Songs (${sortedSongQuery.size})"
         songRecyclerView.layoutManager = LinearLayoutManager(this@SearchAlgoActivity)
+        adjustRecyclerHeight(
+            recycler = songRecyclerView,
+            itemCount = sortedSongQuery.size,
+            maxVisibleItems = 6,   // Song row height in dp
+            maxHeightDp = 316    // Max height allowed (example)
+        )
     }
 
     private fun displayArtists(sortedArtistQuery: List<String>) {
-        val artistDisplayContainer = findViewById<LinearLayout>(R.id.artistDisplayContainer)
+//        val artistDisplayContainer = findViewById<LinearLayout>(R.id.artistDisplayContainer)
         val artistQueryTitle = findViewById<TextView>(R.id.artistQueryTitle)
         val artistRecyclerView: RecyclerView = findViewById(R.id.artistRecyclerView)
 
@@ -373,14 +371,19 @@ class SearchAlgoActivity: AppCompatActivity() {
         }
         artistRecyclerView.adapter = artistAdapter
 
-        artistDisplayContainer.visibility = View.VISIBLE
+//        artistDisplayContainer.visibility = View.VISIBLE
         artistQueryTitle.text = "Artists (${sortedArtistQuery.size})"
         artistRecyclerView.layoutManager = LinearLayoutManager(this@SearchAlgoActivity)
-
+        adjustRecyclerHeight(
+            recycler = artistRecyclerView,
+            itemCount = sortedArtistQuery.size,
+            maxVisibleItems = 8,   // Song row height in dp
+            maxHeightDp = 228    // Max height allowed (example)
+        )
     }
 
     private fun displayAlbum(sortedAlbumQuery: List<Pair<String,String>>) {
-        val albumDisplayContainer = findViewById<LinearLayout>(R.id.albumDisplayContainer)
+//        val albumDisplayContainer = findViewById<LinearLayout>(R.id.albumDisplayContainer)
         val albumQueryTitle = findViewById<TextView>(R.id.albumQueryTitle)
         val albumRecyclerView: RecyclerView = findViewById(R.id.albumRecyclerView)
 
@@ -389,8 +392,44 @@ class SearchAlgoActivity: AppCompatActivity() {
         }
         albumRecyclerView.adapter = albumAdapter
 
-        albumDisplayContainer.visibility = View.VISIBLE
+//        albumDisplayContainer.visibility = View.VISIBLE
         albumQueryTitle.text = "Albums (${sortedAlbumQuery.size})"
         albumRecyclerView.layoutManager = LinearLayoutManager(this@SearchAlgoActivity)
+        adjustRecyclerHeight(
+            recycler = albumRecyclerView,
+            itemCount = sortedAlbumQuery.size,
+            maxVisibleItems = 4,   // Song row height in dp
+            maxHeightDp = 211    // Max height allowed (example)
+        )
+    }
+
+    //TODO: till I get a better solution
+
+    private fun adjustRecyclerHeight(
+        recycler: RecyclerView,
+        itemCount: Int,
+        maxVisibleItems: Int,
+        maxHeightDp: Int
+    ) {
+        val itemHeightDp = (maxHeightDp / maxVisibleItems).toFloat()
+
+        // Total height in dp
+        val totalHeightDp = itemCount * itemHeightDp
+
+        // Clamp to maxHeightDp
+        val finalHeightDp = minOf(totalHeightDp, maxHeightDp.toFloat())
+
+        // Convert final height to pixels
+        val density = recycler.resources.displayMetrics.density
+        recycler.layoutParams.height = (finalHeightDp * density).toInt()
+
+        recycler.requestLayout()
+    }
+
+
+    //TODO: find cleaner way to hide keyboard
+    private fun Activity.hideKeyboard(currentFocus: EditText) {
+        val imm = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(currentFocus.windowToken, 0)
     }
 }
