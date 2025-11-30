@@ -4,6 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!--TODO: Temp Naming -->
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/ToolBar"
         android:layout_width="0dp"

@@ -15,7 +15,7 @@ interface QueryTableInterface {
 
     fun getAlbums(db: SQLiteDatabase): Set<Pair<String, String>>
 
-    fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<Any>>
+    fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<*>>
 
 }
 
@@ -110,25 +110,59 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
     }
 
 
-    override fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<Any>> {
+    override fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<*>> {
 
         val query = """
-        SELECT song FROM SongList 
-        WHERE title LIKE ? OR COALESCE(albumartist, artist) LIKE ? OR album LIKE ?
-    """
-        val cursor = db.rawQuery(query, arrayOf("%$input%", "%$input%", "%$input%"))
+            SELECT 
+                CASE
+                    WHEN title LIKE :search THEN song
+                END AS song,
+                CASE
+                    WHEN artist LIKE :search THEN artist
+                    WHEN albumartist LIKE :search THEN albumartist
+                END AS artist,
+                CASE
+                    WHEN album LIKE :search THEN 
+                        CASE
+                            WHEN albumartist IS NOT NULL AND albumartist != '' THEN album || ' - ' || albumartist
+                            ELSE album || ' - ' || artist
+                        END
+                END AS album
+            FROM SongList
+            WHERE title LIKE :search OR artist LIKE :search OR albumartist LIKE :search OR album LIKE :search
+        """
 
-        val combinedMap = mutableMapOf<String, MutableSet<Any>>()
-        while (cursor.moveToNext()) {
-            val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
-            val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
-            val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
+        val cursor = db.rawQuery(query, arrayOf("%$input%"))
 
-            combinedMap.computeIfAbsent("song") { mutableSetOf() }.add(Song.deserialize(serializedSong)) //Json.decodeFromString<Song>(song)
-            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(artist)
-            combinedMap.computeIfAbsent("artist") { mutableSetOf() }.add(album)
+        val combinedMap = mutableMapOf<String, MutableSet<*>>()
+
+        val songSet = mutableSetOf<Song>()
+        val artistSet = mutableSetOf<String>()
+        val albumSet = mutableSetOf<Pair<String?, String?>>()
+
+        cursor.use { c ->
+            while (c.moveToNext()) {
+                val serializedSong = cursor.getString(cursor.getColumnIndexOrThrow("song"))
+                val artist = cursor.getString(cursor.getColumnIndexOrThrow("artist"))
+//            val albumartist = cursor.getString(cursor.getColumnIndexOrThrow("albumartist"))
+                val album = cursor.getString(cursor.getColumnIndexOrThrow("album"))
+
+                serializedSong?.takeIf { it.isNotBlank() }?.let {s -> songSet.add(Song.deserialize(s))}
+
+                artist?.takeIf { it.isNotBlank() }?.let {a -> artistSet.add(a)}
+
+                album?.takeIf { it.isNotBlank() }?.let {a ->
+                    val albumPair = a.split(" - ", limit = 2).let { it.firstOrNull() to it.getOrNull(1) }
+                    albumSet.add(albumPair)
+                }
+            }
         }
-        cursor.close()
+
+        combinedMap["song"] = songSet
+        combinedMap["artist"] = artistSet
+        combinedMap["album"] = albumSet
+
+
         return combinedMap
     }
 }

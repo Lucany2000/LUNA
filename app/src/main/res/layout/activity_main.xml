@@ -6,33 +6,33 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-        <include layout="@layout/tool_bar" />
-
-        <include layout="@layout/navigation_bar" />
-
-<!--        <include layout="@layout/char_line"-->
-<!--            app:layout_constraintStart_toEndOf="@+id/scrollView"/>-->
-
-<!--        <ScrollView-->
-<!--            android:id="@+id/scrollView"-->
+<!--        <include-->
+<!--            android:id="@+id/mainToolBar"-->
+<!--            layout="@layout/tool_bar"-->
 <!--            android:layout_width="0dp"-->
-<!--            android:layout_height="0dp"-->
-<!--            app:layout_constraintTop_toBottomOf="@+id/NavBar"-->
-<!--            app:layout_constraintBottom_toTopOf="@+id/floatingButton"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
 <!--            app:layout_constraintStart_toStartOf="parent"-->
 <!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintEnd_toStartOf="@+id/charLineScrollView">-->
+<!--            app:layout_constraintBottom_toTopOf="@id/mainNavBar" />-->
 
-<!--            <LinearLayout-->
-<!--                android:id="@+id/rootLayout"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:orientation="vertical"-->
-<!--                android:layout_marginLeft="5dp">-->
+<!--    <include-->
+<!--        android:id="@+id/testToolBar"-->
+<!--        layout="@layout/test_tool_bar" />-->
 
-<!--            </LinearLayout>-->
+<!--        <include-->
+<!--            android:id="@+id/mainNavBar"-->
+<!--            layout="@layout/navigation_bar"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/testToolBar"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintBottom_toTopOf="@id/recyclerView"/>-->
 
-<!--        </ScrollView>-->
+    <include layout="@layout/tool_bar" />
+
+    <include layout="@layout/navigation_bar" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

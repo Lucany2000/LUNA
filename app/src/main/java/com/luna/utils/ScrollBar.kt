@@ -1,24 +1,24 @@
-//package com.luna.utils
-//
-//import com.luna.main.R
-//import android.content.Context
-//import android.graphics.Canvas
-//import android.graphics.Color
-//import android.graphics.Paint
-//import android.graphics.Rect
-//import android.graphics.drawable.GradientDrawable
-//import android.util.AttributeSet
-//import android.view.Gravity
-//import android.view.MotionEvent
-//import android.view.View
-//import android.widget.FrameLayout
-//import android.widget.LinearLayout
-//import android.widget.PopupWindow
-//import android.widget.ScrollView
-//import android.widget.TextView
-//import androidx.core.content.ContextCompat
-//import android.util.Log
-//import org.w3c.dom.Text
+package com.luna.utils
+
+import com.luna.main.R
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
+import android.util.AttributeSet
+import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.PopupWindow
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import android.util.Log
+import org.w3c.dom.Text
 //
 //class ScrollBar(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 //

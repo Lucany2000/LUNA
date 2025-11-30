@@ -3,11 +3,14 @@ package com.luna.utils
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -16,36 +19,11 @@ import com.luna.data.Song
 import com.luna.main.R
 
 object UI {
-
-    //Buttons
-
-    fun createButton(context: Context, song: Song): LinearLayout {
-        val compoundTextView = LinearLayout(context)
-        compoundTextView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        compoundTextView.orientation = LinearLayout.VERTICAL
-        compoundTextView.gravity = Gravity.CENTER
-
-        val titleTextView = createTextView(context, song.getTitle(), true, compoundTextView)
-        val artistTextView = createTextView(context, song.getArtist(), false, compoundTextView)
-
-        compoundTextView.addView(titleTextView)
-        compoundTextView.addView(artistTextView)
-
-        val currentColor = ContextCompat.getColor(context, R.color.white)
-        val colorPressed = ContextCompat.getColor(context, R.color.light_gray)
-        val stateListDrawable = StateListDrawable()
-        stateListDrawable.addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(colorPressed))
-        stateListDrawable.addState(intArrayOf(android.R.attr.state_focused), ColorDrawable(colorPressed))
-        stateListDrawable.addState(intArrayOf(android.R.attr.state_activated), ColorDrawable(colorPressed))
-        stateListDrawable.addState(intArrayOf(), ColorDrawable(currentColor))
-
-        compoundTextView.background = stateListDrawable
-
-
-        return compoundTextView
+    fun setClickCooldown(view: View, cooldownTime: Long = 1000L) {
+        view.isEnabled = false // Disable interaction
+        view.postDelayed({
+            view.isEnabled = true // Re-enable after cooldown
+        }, cooldownTime)
     }
 
     fun createTextView(context: Context, text: String, isTitle: Boolean, parent: LinearLayout): TextView {
@@ -125,4 +103,48 @@ object UI {
         return popupWindow
 
     }
+
+//    fun createCircleDrawable(icon: View, color: Int, x: Int, y: Int): GradientDrawable {
+//        return GradientDrawable().apply {
+//            shape = GradientDrawable.OVAL
+//            setColor(color)
+//            setSize(icon.width+x, icon.height+y)
+//        }
+//    }
+//
+//    fun createStateListDrawable(
+//        color: Int,
+//        x: Int,
+//        y: Int,
+//        defaultState: Drawable,
+//        pressedState: Drawable? = null,
+//        focusedState: Drawable? = null
+//    ): StateListDrawable {
+//        val stateListDrawable = StateListDrawable()
+//
+//        // Add the pressed state
+//        if (pressedState != null) {
+//            stateListDrawable.addState(
+//                intArrayOf(android.R.attr.state_pressed),
+//                pressedState
+//            )
+//        }
+//
+//        // Add the focused state
+//        if (focusedState != null) {
+//            stateListDrawable.addState(
+//                intArrayOf(android.R.attr.state_focused),
+//                focusedState
+//            )
+//        }
+//
+//        // Add the default state
+//        stateListDrawable.addState(
+//            intArrayOf(),
+//            defaultState
+//        )
+//
+//        return stateListDrawable
+//    }
+
 }
