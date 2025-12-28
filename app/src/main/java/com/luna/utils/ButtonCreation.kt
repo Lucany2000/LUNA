@@ -335,6 +335,8 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
         return artistButtonContainer
     }
 
+    //TODO: Update button to include area for images hence "Window button"
+
     open fun createAlbumButton(activity: AppCompatActivity, album: Pair<String,String>): LinearLayout {
         val albumButton = createButton(activity, album)
 

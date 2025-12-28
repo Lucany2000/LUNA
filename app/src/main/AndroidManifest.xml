@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools" >
 
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".StartUp"
@@ -16,32 +16,44 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.LUNA"
-        tools:targetApi="31">
-        <activity android:name=".SongOrderActivity"
+        tools:targetApi="31" >
+        <activity
+            android:name=".ArtistActivity"
             android:exported="true" />
-        <activity android:name=".SearchAlgoActivity"
+        <activity
+            android:name=".AlbumActivity"
+            android:exported="true" />
+        <activity
+            android:name=".SongOrderActivity"
+            android:exported="true" />
+        <activity
+            android:name=".SearchAlgoActivity"
             android:exported="true" />
         <activity
             android:name="com.luna.test.TestActivity"
-            android:exported="true">
-<!--            <intent-filter>-->
+            android:exported="true" >
 
-<!--                &lt;!&ndash; <action android:name="android.intent.action.MAIN" /> &ndash;&gt;-->
-<!--&lt;!&ndash;                <category android:name="android.intent.category.LAUNCHER" />&ndash;&gt;-->
-<!--            </intent-filter>-->
+            <!-- <intent-filter> -->
+
+
+            <!-- &lt;!&ndash; <action android:name="android.intent.action.MAIN" /> &ndash;&gt; -->
+            <!-- &lt;!&ndash;                <category android:name="android.intent.category.LAUNCHER" />&ndash;&gt; -->
+            <!-- </intent-filter> -->
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-<!--            <intent-filter>-->
-<!--&lt;!&ndash;                <action android:name="android.intent.action.MAIN" />&ndash;&gt;-->
+            android:exported="true" >
 
-<!--&lt;!&ndash;                <category android:name="android.intent.category.LAUNCHER" />&ndash;&gt;-->
-<!--            </intent-filter>-->
+            <!-- <intent-filter> -->
+            <!-- &lt;!&ndash;                <action android:name="android.intent.action.MAIN" />&ndash;&gt; -->
+
+
+            <!-- &lt;!&ndash;                <category android:name="android.intent.category.LAUNCHER" />&ndash;&gt; -->
+            <!-- </intent-filter> -->
         </activity>
         <activity
             android:name=".InitializationActivity"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

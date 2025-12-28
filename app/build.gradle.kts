@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.luna.main"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.luna.main"
         minSdk = 31
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -44,7 +44,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("org.mongodb:mongodb-driver-sync:4.4.0")
     implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-    implementation("com.arthenica:ffmpeg-kit-full:5.1.LTS")
+    implementation("androidx.activity:activity:1.12.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

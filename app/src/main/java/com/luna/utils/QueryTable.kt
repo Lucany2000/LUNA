@@ -89,9 +89,16 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
         return results
     }
 
+    //TODO: Review
+
     override fun getAlbums(db: SQLiteDatabase): Set<Pair<String, String>> {
         val query = """
-        SELECT album, COALESCE(albumartist, artist) as albumartist
+        SELECT album, 
+        CASE 
+            WHEN albumartist IS NULL OR albumartist = '' OR albumartist = 'Unknown' 
+            THEN artist 
+            ELSE albumartist 
+        END AS albumartist
         FROM SongList """
 
         val cursor = db.rawQuery(query, null)

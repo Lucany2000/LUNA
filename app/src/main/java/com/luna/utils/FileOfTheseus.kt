@@ -1,9 +1,6 @@
 package com.luna.utils
 
 import android.database.sqlite.SQLiteDatabase
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.FFmpegSession
-import com.arthenica.ffmpegkit.ReturnCode
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.io.File

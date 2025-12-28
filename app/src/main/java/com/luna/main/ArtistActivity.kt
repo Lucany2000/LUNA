@@ -1,43 +1,33 @@
 package com.luna.main
 
+import CharButtonAdapter
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
-import android.view.MenuInflater
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.ImageButton
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import android.view.View
-import android.widget.ImageView
-import android.widget.PopupMenu
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.*
-import android.widget.ImageButton
-import CharButtonAdapter
-import android.content.Context
-import android.graphics.Color
-import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat.startActivity
 import com.google.android.material.tabs.TabLayout
-
 import com.luna.data.Song
-import com.luna.global.SongOrder
 import com.luna.utils.BackEnd
-import com.luna.utils.UI
-import com.luna.global.MusicPlayer
+import com.luna.utils.ButtonCreation
 import com.luna.utils.QueryTable
 import com.luna.utils.RecycleViewAdapter
-import com.luna.utils.ButtonCreation
+import com.luna.utils.UI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-
-class MainActivity : AppCompatActivity() {
-
+class ArtistActivity : AppCompatActivity() {
     private val query: QueryTable = QueryTable(this)
-    private lateinit var songAdapter: RecycleViewAdapter<Song>
+    private lateinit var artistAdapter: RecycleViewAdapter<String>
     private lateinit var charAdapter: CharButtonAdapter
-    private lateinit var generatedSongList: List<Song>
+    private lateinit var generatedArtistList: List<String>
     private val letterToFirstInstance: MutableMap<String, Int> = mutableMapOf()
     private lateinit var uniqueChars: MutableList<Char>
 
@@ -45,28 +35,28 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_artist)
 
         val navBar: TabLayout = findViewById(R.id.NavBar)
-        val tracksTab = navBar.getTabAt(0)
+        val tracksTab = navBar.getTabAt(2)
         tracksTab?.select()
 
         val charRecyclerView: RecyclerView = findViewById(R.id.charRecyclerView)
-        val songRecyclerView: RecyclerView = findViewById(R.id.recyclerView)
+        val artistRecyclerView: RecyclerView = findViewById(R.id.recyclerView)
 
         val searchButton: ImageButton = findViewById(R.id.searchButton)
 
         charRecyclerView.layoutManager = LinearLayoutManager(this)
-        songRecyclerView.layoutManager = LinearLayoutManager(this)
+        artistRecyclerView.layoutManager = LinearLayoutManager(this)
 
         CoroutineScope(Dispatchers.IO).launch {
             val readOnlyDB = query.readOnlyMode()
-            val audioFiles = query.getSongs(readOnlyDB)
-            generatedSongList = BackEnd.sort(audioFiles)
-            uniqueChars = BackEnd.createKnownAlphabet(generatedSongList).toMutableList()
+            val audioFiles = query.getArtists(readOnlyDB)
+            generatedArtistList = BackEnd.sort(audioFiles)
+            uniqueChars = BackEnd.createKnownAlphabet(generatedArtistList).toMutableList()
 
-            generatedSongList.forEachIndexed { index, song ->
-                val title = song.getTitle()
+            generatedArtistList.forEachIndexed { index, artist ->
+                val title = artist
                 val firstChar = BackEnd.removePrefix(title).firstOrNull()?.uppercase()
 
                 if (firstChar != null && !letterToFirstInstance.containsKey(firstChar)) {
@@ -75,40 +65,40 @@ class MainActivity : AppCompatActivity() {
             }
 
             withContext(Dispatchers.Main) {
-                // Initialize SongAdapter first so it updates letterToFirstInstance
-                songAdapter = RecycleViewAdapter(this@MainActivity, generatedSongList) { song ->
-                    buttonCreation.createSongButton(this@MainActivity, song)
+                // Initialize artistAdapter first so it updates letterToFirstInstance
+                artistAdapter = RecycleViewAdapter(this@ArtistActivity, generatedArtistList) { artist ->
+                    buttonCreation.createArtistButton(this@ArtistActivity, artist)
                 }
-                songRecyclerView.adapter = songAdapter
+                artistRecyclerView.adapter = artistAdapter
 
                 // Now pass the updated letterToFirstInstance to CharAdapter
-                charAdapter = CharButtonAdapter(this@MainActivity, uniqueChars, letterToFirstInstance) { position ->
-                    songRecyclerView.smoothScrollToPosition(position) // Scroll to song position
+                charAdapter = CharButtonAdapter(this@ArtistActivity, uniqueChars, letterToFirstInstance) { position ->
+                    artistRecyclerView.smoothScrollToPosition(position) // Scroll to song position
                 }
                 charRecyclerView.adapter = charAdapter
 
                 searchButton.setOnClickListener {
                     if (!it.isEnabled) return@setOnClickListener
                     UI.setClickCooldown(it)
-                    val intent = Intent(this@MainActivity, SearchAlgoActivity::class.java)
+                    val intent = Intent(this@ArtistActivity, SearchAlgoActivity::class.java)
                     startActivity(intent)
                 }
 
                 val refreshButton: ImageButton = findViewById(R.id.refreshButton)
 
                 refreshButton.setOnClickListener {
-//                    refreshButton.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.light_gray))
+//                    refreshButton.setBackgroundColor(ContextCompat.getColor(this@ArtistActivity, R.color.light_gray))
                     if (!it.isEnabled) return@setOnClickListener
                     UI.setClickCooldown(it)
                     CoroutineScope(Dispatchers.IO).launch {
-                        (application as StartUp).getAllAudioFiles(this@MainActivity)
+                        (application as StartUp).getAllAudioFiles(this@ArtistActivity)
                         val readOnlyDB = query.readOnlyMode()
-                        val audioFiles = query.getSongs(readOnlyDB)
-                        generatedSongList = BackEnd.sort(audioFiles)
-                        uniqueChars = BackEnd.createKnownAlphabet(generatedSongList).toMutableList()
+                        val audioFiles = query.getArtists(readOnlyDB)
+                        generatedArtistList = BackEnd.sort(audioFiles)
+                        uniqueChars = BackEnd.createKnownAlphabet(generatedArtistList).toMutableList()
 
-                        generatedSongList.forEachIndexed { index, song ->
-                            val title = song.getTitle()
+                        generatedArtistList.forEachIndexed { index, artist ->
+                            val title = artist
                             val firstChar = BackEnd.removePrefix(title).firstOrNull()?.uppercase()
 
                             if (firstChar != null && !letterToFirstInstance.containsKey(firstChar)) {
@@ -118,7 +108,7 @@ class MainActivity : AppCompatActivity() {
 
                         withContext(Dispatchers.Main) {
 //                            recreate()
-                            songAdapter.updateAdapter(generatedSongList)
+                            artistAdapter.updateAdapter(generatedArtistList)
                             charAdapter.updateCharAdapter(uniqueChars, letterToFirstInstance)
                             Log.d("refresh", "Refreshed!")
                         }
@@ -128,15 +118,15 @@ class MainActivity : AppCompatActivity() {
                 navBar.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                     override fun onTabSelected(tab: TabLayout.Tab?) {
                         when (tab?.position) {
-                            0 -> { /* Already here (Home) */ }
+                            0 -> {
+                                val intent = Intent(this@ArtistActivity, MainActivity::class.java)
+                                startActivity(intent)
+                            }
                             1 -> {
-                                val intent = Intent(this@MainActivity, AlbumActivity::class.java)
+                                val intent = Intent(this@ArtistActivity, AlbumActivity::class.java)
                                 startActivity(intent)
                             }
-                            2 -> {
-                                val intent = Intent(this@MainActivity, ArtistActivity::class.java)
-                                startActivity(intent)
-                            }
+                            2 -> {}
                         }
                     }
 
@@ -144,14 +134,14 @@ class MainActivity : AppCompatActivity() {
                     override fun onTabReselected(tab: TabLayout.Tab?) {}
                 })
 
-//                ToolBar.refresh(this@MainActivity)
+//                ToolBar.refresh(this@ArtistActivity)
 //                refresh()
 
                 //TODO: add Settings later
                 /*
                 val settingsButton: ImageButton = findViewById(R.id.settingsButton)
                 settingsButton.setOnClickListener {
-                    val intent = Intent(this@MainActivity, SettingsActivity::class.java)
+                    val intent = Intent(this@ArtistActivity, SettingsActivity::class.java)
                     startActivity(intent)
                 }
                 */
@@ -159,5 +149,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 }

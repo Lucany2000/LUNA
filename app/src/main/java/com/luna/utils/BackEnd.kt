@@ -46,7 +46,8 @@ object BackEnd {
 //    }
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T> sort(list: List<T>): List<T> {
+    inline fun <reified T> sort(collection: Iterable<T>): List<T> {
+        val list = collection.toList()
 
         return when (T::class) {
             Song::class -> {
