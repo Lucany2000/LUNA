@@ -1,6 +1,7 @@
 package com.luna.utils
 
 import CharButtonAdapter
+import SongsFragment
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -16,6 +17,7 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.commit
 import com.luna.data.Song
 import com.luna.global.MusicPlayer
 import com.luna.global.SongOrder
@@ -329,6 +331,16 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
         )
         artistButton.layoutParams = artistButtonParams
 
+        artistButton.setOnClickListener {
+            val fragment = AlbumsFragment.newInstance(artist)
+
+            activity.supportFragmentManager.commit {
+                setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out) // Optional: Smooth transition
+                replace(android.R.id.content, fragment) // R.id.fragment_container is the FrameLayout in your XML
+                addToBackStack(null) // Allows the user to go back when they hit the back button
+            }
+        }
+
         // Add songButton and dotImageView to the container
         artistButtonContainer.addView(artistButton)
 
@@ -348,6 +360,16 @@ open class ButtonCreation(protected val activity: AppCompatActivity) {
             0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f // Song button takes available space
         )
         albumButton.layoutParams = albumButtonParams
+
+        albumButton.setOnClickListener {
+            val fragment = SongsFragment.newInstance(album.second, album.first)
+
+            activity.supportFragmentManager.commit {
+                setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out) // Optional: Smooth transition
+                replace(android.R.id.content, fragment) // R.id.fragment_container is the FrameLayout in your XML
+                addToBackStack(null) // Allows the user to go back when they hit the back button
+            }
+        }
 
         // Add songButton and dotImageView to the container
         albumButtonContainer.addView(albumButton)

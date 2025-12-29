@@ -13,7 +13,7 @@ interface QueryTableInterface {
 
     fun getArtists(db: SQLiteDatabase): Set<String>
 
-    fun getAlbums(db: SQLiteDatabase): Set<Pair<String, String>>
+    fun getAlbums(db: SQLiteDatabase, artist: String? = null): Set<Pair<String, String>>
 
     fun searchAlgo(db: SQLiteDatabase, input: String): Map<String, Set<*>>
 
@@ -41,7 +41,7 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
                 queryArgs.add(artist)
             }
             artist != null && album != null -> {
-                baseQuery.append(" WHERE COALESCE(albumartist, artist) = ? AND album = ?")
+                baseQuery.append(" WHERE COALESCE(NULLIF(NULLIF(albumartist, ''), 'Unknown'), artist) = ? AND album = ?")
                 queryArgs.add(artist)
                 queryArgs.add(album)
             }
@@ -91,18 +91,36 @@ internal class QueryTable(context: Context): MainDatabase(context), QueryTableIn
 
     //TODO: Review
 
-    override fun getAlbums(db: SQLiteDatabase): Set<Pair<String, String>> {
+    override fun getAlbums(db: SQLiteDatabase, artist: String?): Set<Pair<String, String>> {
+
+        val baseQuery = StringBuilder("SELECT album, \n" +
+                "        CASE \n" +
+                "            WHEN albumartist IS NULL OR albumartist = '' OR albumartist = 'Unknown' \n" +
+                "            THEN artist \n" +
+                "            ELSE albumartist \n" +
+                "        END AS albumartist " +
+                "FROM SongList")
+
+        val queryArgs = mutableListOf<String>()
+
+        if (!artist.isNullOrEmpty()) {
+            baseQuery.append(" WHERE COALESCE(NULLIF(NULLIF(albumartist, ''), 'Unknown'), artist) = ?")
+            queryArgs.add(artist)
+        }
+
         val query = """
-        SELECT album, 
-        CASE 
-            WHEN albumartist IS NULL OR albumartist = '' OR albumartist = 'Unknown' 
-            THEN artist 
-            ELSE albumartist 
+        SELECT album,
+        CASE
+            WHEN albumartist IS NULL OR albumartist = '' OR albumartist = 'Unknown'
+            THEN artist
+            ELSE albumartist
         END AS albumartist
         FROM SongList """
 
-        val cursor = db.rawQuery(query, null)
+        val cursor = db.rawQuery(baseQuery.toString(), queryArgs.toTypedArray())
 
+//        val cursor = db.rawQuery(query, null)
+        //TODO: size of 1?
         val results = mutableSetOf<Pair<String, String>>()
 
         while (cursor.moveToNext()) {

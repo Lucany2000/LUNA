@@ -41,12 +41,12 @@ class AlbumActivity : AppCompatActivity() {
         tracksTab?.select()
 
         val charRecyclerView: RecyclerView = findViewById(R.id.charRecyclerView)
-        val artistRecyclerView: RecyclerView = findViewById(R.id.recyclerView)
+        val albumRecyclerView: RecyclerView = findViewById(R.id.recyclerView)
 
         val searchButton: ImageButton = findViewById(R.id.searchButton)
 
         charRecyclerView.layoutManager = LinearLayoutManager(this)
-        artistRecyclerView.layoutManager = LinearLayoutManager(this)
+        albumRecyclerView.layoutManager = LinearLayoutManager(this)
 
         CoroutineScope(Dispatchers.IO).launch {
             val readOnlyDB = query.readOnlyMode()
@@ -68,11 +68,11 @@ class AlbumActivity : AppCompatActivity() {
                 albumAdapter = RecycleViewAdapter(this@AlbumActivity, generatedAlbumList) { album ->
                     buttonCreation.createAlbumButton(this@AlbumActivity, album)
                 }
-                artistRecyclerView.adapter = albumAdapter
+                albumRecyclerView.adapter = albumAdapter
 
                 // Now pass the updated letterToFirstInstance to CharAdapter
                 charAdapter = CharButtonAdapter(this@AlbumActivity, uniqueChars, letterToFirstInstance) { position ->
-                    artistRecyclerView.smoothScrollToPosition(position) // Scroll to song position
+                    albumRecyclerView.smoothScrollToPosition(position) // Scroll to song position
                 }
                 charRecyclerView.adapter = charAdapter
 
